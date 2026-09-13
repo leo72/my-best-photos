@@ -5,6 +5,8 @@ export interface AuthViewElements {
     logoutButton: HTMLButtonElement;
     status: HTMLParagraphElement;
     message: HTMLParagraphElement;
+    createTestPhotoButton: HTMLButtonElement;
+    photos: HTMLDivElement;
   }
   
   export function renderAuthView(
@@ -65,7 +67,14 @@ export interface AuthViewElements {
   
           <p id="status">Checking authentication...</p>
           <p id="message"></p>
+          <div id="photos"></div>
         </section>
+        <button
+  id="create-test-photo-button"
+  type="button"
+>
+  Create test photo
+</button>
       </main>
     `;
   
@@ -86,6 +95,13 @@ export interface AuthViewElements {
   
     const message =
       container.querySelector<HTMLParagraphElement>('#message');
+
+      const createTestPhotoButton =
+      container.querySelector<HTMLButtonElement>(
+        '#create-test-photo-button',
+      );
+      const photos =
+  container.querySelector<HTMLDivElement>('#photos');
   
     if (
       !form ||
@@ -93,7 +109,8 @@ export interface AuthViewElements {
       !passwordInput ||
       !logoutButton ||
       !status ||
-      !message
+      !message ||
+      !createTestPhotoButton
     ) {
       throw new Error('Auth view initialization failed');
     }
@@ -105,5 +122,6 @@ export interface AuthViewElements {
       logoutButton,
       status,
       message,
+      createTestPhotoButton,
     };
   }

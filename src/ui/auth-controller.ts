@@ -4,6 +4,8 @@ import {
     register,
     subscribeToAuthState,
   } from '../services/auth-service';
+
+  import { createTestPhoto } from '../services/photo-service';
   
   import type { AuthAction } from '../types/auth-action';
   import type { AuthViewElements } from './auth-view';
@@ -22,7 +24,16 @@ import {
       logoutButton,
       status,
       message,
+      createTestPhotoButton,
     } = view;
+
+    createTestPhotoButton.addEventListener('click', async () => {
+        try {
+          await createTestPhoto();
+        } catch (error) {
+          console.error(error);
+        }
+      });
   
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
