@@ -282,7 +282,7 @@ async function processOriginal(
 
 export const processPhotoUpload = onObjectFinalized(
   {
-    region: 'us-central1',
+    region: 'us-east1',
     bucket: getPhotoStorageBucket(),
     timeoutSeconds: 300,
     memory: '1GiB',
