@@ -17,7 +17,7 @@
     "emulators": "scripts/with-java.sh scripts/emulators.sh",
     "emulators:fresh": "scripts/with-java.sh scripts/emulators.sh --fresh",
     "firebase": "firebase --config firebase/firebase.json",
-    "deploy:backend": "npm run firebase -- deploy --only functions,firestore,storage --project my-best-photos-v1 --non-interactive"
+    "deploy:backend": "npm run firebase -- deploy --only functions,firestore,storage --project my-best-photos-v1 --non-interactive --force"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",

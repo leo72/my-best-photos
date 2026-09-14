@@ -20,7 +20,9 @@ import {
 } from './photo-contract.js';
 import {
   decidePhotoProcessing,
+  decideProcessingRetry,
   type ProcessingDecision,
+  type ProcessingRetryDecision,
 } from './processing-decision.js';
 
 const ORIGINAL_PATH_PATTERN =
@@ -140,12 +142,18 @@ async function beginProcessing(
       return snapshot.exists ? decision : 'reject';
     }
 
-    transaction.update(photoRef, {
+    const update: Record<string, unknown> = {
       status: 'processing',
       sourceGeneration: object.generation,
       updatedAt: Timestamp.now(),
       errorCode: null,
-    });
+    };
+
+    if (isRecord(data) && data.status === 'reserved') {
+      update.processingAttempts = 0;
+    }
+
+    transaction.update(photoRef, update);
 
     return decision;
   });
@@ -202,6 +210,71 @@ async function markFailed(
       reservationExpiresAt: null,
     });
     transaction.delete(publicRef);
+  });
+}
+
+function readProcessingAttempts(value: unknown): number {
+  if (
+    !isRecord(value)
+    || typeof value.processingAttempts !== 'number'
+    || !Number.isInteger(value.processingAttempts)
+    || value.processingAttempts < 0
+  ) {
+    return 0;
+  }
+
+  return value.processingAttempts;
+}
+
+async function recordTransientProcessingFailure(
+  object: OriginalPhotoObject,
+  errorCode: string,
+): Promise<ProcessingRetryDecision> {
+  const privateRef = adminDb.doc(
+    getPrivatePhotoPath(object.ownerId, object.slot),
+  );
+  const publicRef = adminDb.doc(
+    `publicPhotos/${getPublicPhotoId(
+      object.ownerId,
+      object.slot,
+    )}`,
+  );
+
+  return adminDb.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(privateRef);
+    const data: unknown = snapshot.data();
+
+    if (
+      !snapshot.exists
+      || !isRecord(data)
+      || data.reservationId !== object.reservationId
+      || data.sourceGeneration !== object.generation
+    ) {
+      return 'give-up';
+    }
+
+    const failedAttemptCount = readProcessingAttempts(data) + 1;
+    const retryDecision = decideProcessingRetry(failedAttemptCount);
+
+    if (retryDecision === 'give-up') {
+      transaction.update(privateRef, {
+        status: 'failed',
+        errorCode,
+        processingAttempts: failedAttemptCount,
+        updatedAt: Timestamp.now(),
+        reservationExpiresAt: null,
+      });
+      transaction.delete(publicRef);
+      return 'give-up';
+    }
+
+    transaction.update(privateRef, {
+      processingAttempts: failedAttemptCount,
+      errorCode,
+      updatedAt: Timestamp.now(),
+    });
+
+    return 'retry';
   });
 }
 
@@ -370,6 +443,24 @@ export const processPhotoUpload = onObjectFinalized(
         slot: object?.slot ?? null,
         errorCode,
       });
+
+      if (!object) {
+        return;
+      }
+
+      const retryDecision = await recordTransientProcessingFailure(
+        object,
+        errorCode,
+      );
+
+      if (retryDecision === 'give-up') {
+        logger.warn('Photo processing gave up after retries', {
+          ownerId: object.ownerId,
+          slot: object.slot,
+          errorCode,
+        });
+        return;
+      }
 
       throw error;
     }

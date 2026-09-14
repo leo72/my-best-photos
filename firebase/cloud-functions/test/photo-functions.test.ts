@@ -8,7 +8,11 @@ import {
 
 import { getPhotoStorageBucket } from '../src/firebase-admin.js';
 import { createImageDerivatives } from '../src/photos/image-processor.js';
-import { decidePhotoProcessing } from '../src/photos/processing-decision.js';
+import {
+  decidePhotoProcessing,
+  decideProcessingRetry,
+  MAX_PHOTO_PROCESSING_ATTEMPTS,
+} from '../src/photos/processing-decision.js';
 import { findAvailableSlot } from '../src/photos/slot-allocation.js';
 import {
   InvalidPhotoInputError,
@@ -102,6 +106,15 @@ describe('findAvailableSlot', () => {
     }));
 
     expect(findAvailableSlot(slots, 1_000)).toBeNull();
+  });
+});
+
+describe('decideProcessingRetry', () => {
+  it('retries until the attempt limit then gives up', () => {
+    expect(decideProcessingRetry(MAX_PHOTO_PROCESSING_ATTEMPTS - 1))
+      .toBe('retry');
+    expect(decideProcessingRetry(MAX_PHOTO_PROCESSING_ATTEMPTS))
+      .toBe('give-up');
   });
 });
 

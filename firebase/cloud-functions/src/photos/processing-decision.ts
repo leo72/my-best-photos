@@ -1,7 +1,19 @@
+export const MAX_PHOTO_PROCESSING_ATTEMPTS = 5;
+
 export type ProcessingDecision =
   | 'process'
   | 'already-ready'
   | 'reject';
+
+export type ProcessingRetryDecision = 'retry' | 'give-up';
+
+export function decideProcessingRetry(
+  failedAttemptCount: number,
+): ProcessingRetryDecision {
+  return failedAttemptCount >= MAX_PHOTO_PROCESSING_ATTEMPTS
+    ? 'give-up'
+    : 'retry';
+}
 
 export function decidePhotoProcessing(
   value: unknown,
