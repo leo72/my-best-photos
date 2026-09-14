@@ -96,7 +96,6 @@ export function createFirebasePhotoUploadGateway(): PhotoUploadGateway {
         contentType: file.type,
         customMetadata: {
           reservationId: reservation.reservationId,
-          originalFileName: file.name,
         },
       });
     },

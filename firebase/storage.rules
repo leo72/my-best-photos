@@ -28,15 +28,12 @@ service firebase.storage {
         && request.resource.contentType.matches(
           'image/(jpeg|png|webp)'
         )
-        && request.resource.metadata.keys().hasOnly([
-          'reservationId',
-          'originalFileName'
+        && request.resource.metadata.keys().hasAll([
+          'reservationId'
         ])
         && privatePhoto(ownerId, slot).data.status == 'reserved'
         && privatePhoto(ownerId, slot).data.reservationId
           == request.resource.metadata.reservationId
-        && privatePhoto(ownerId, slot).data.originalFileName
-          == request.resource.metadata.originalFileName
         && privatePhoto(ownerId, slot).data.originalContentType
           == request.resource.contentType
         && privatePhoto(ownerId, slot).data.originalSize
