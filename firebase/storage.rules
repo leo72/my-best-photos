@@ -1,0 +1,71 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isOwner(ownerId) {
+      return request.auth != null
+        && request.auth.uid == ownerId;
+    }
+
+    function privatePhoto(ownerId, slot) {
+      return firestore.get(
+        /databases/(default)/documents/users/$(ownerId)/photos/$(slot)
+      );
+    }
+
+    function publicPhoto(ownerId, slot) {
+      return firestore.get(
+        /databases/(default)/documents/publicPhotos/$(ownerId + "_" + slot)
+      );
+    }
+
+    function canCreateOriginal(ownerId, slot) {
+      return isOwner(ownerId)
+        && resource == null
+        && request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 12 * 1024 * 1024
+        && request.resource.contentType.matches(
+          'image/(jpeg|png|webp)'
+        )
+        && request.resource.metadata.keys().hasOnly([
+          'reservationId',
+          'originalFileName'
+        ])
+        && privatePhoto(ownerId, slot).data.status == 'reserved'
+        && privatePhoto(ownerId, slot).data.reservationId
+          == request.resource.metadata.reservationId
+        && privatePhoto(ownerId, slot).data.originalFileName
+          == request.resource.metadata.originalFileName
+        && privatePhoto(ownerId, slot).data.originalContentType
+          == request.resource.contentType
+        && privatePhoto(ownerId, slot).data.originalSize
+          == request.resource.size;
+    }
+
+    function isReadyPublicPhoto(ownerId, slot) {
+      return firestore.exists(
+        /databases/(default)/documents/publicPhotos/$(ownerId + "_" + slot)
+      )
+        && publicPhoto(ownerId, slot).data.status == 'ready';
+    }
+
+    match /photos/{ownerId}/{slot}/original {
+      allow read: if isOwner(ownerId);
+      allow create: if canCreateOriginal(ownerId, slot);
+      allow update, delete: if false;
+    }
+
+    match /photos/{ownerId}/{slot}/{derivative} {
+      allow read: if (
+        derivative == 'optimized.webp'
+        || derivative == 'thumbnail.webp'
+      ) && isReadyPublicPhoto(ownerId, slot);
+      allow write: if false;
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

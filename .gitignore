@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+firebase/cloud-functions/lib
+firebase/emulator-data
+.firebase
 *.local
 
 # Editor directories and files

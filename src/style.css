@@ -134,6 +134,33 @@ input:focus {
   margin: 0;
 }
 
+.photo-upload-form {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.photo-upload-form label {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.photo-upload-form button {
+  flex: none;
+}
+
+.upload-hint {
+  margin-bottom: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
 #gallery-message {
   min-height: 24px;
 }
@@ -148,19 +175,28 @@ input:focus {
 }
 
 .photo-card {
-  padding: 16px;
+  overflow: hidden;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
 }
 
-.photo-card strong {
+.photo-card a {
   display: block;
-  margin-bottom: 8px;
+  background: #e2e8f0;
 }
 
-.photo-card div {
-  overflow-wrap: anywhere;
+.photo-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.photo-dimensions {
+  margin: 0;
+  padding: 10px 12px;
   color: #6b7280;
   font-size: 14px;
 }
@@ -181,6 +217,11 @@ input:focus {
 
   .gallery-header button {
     align-self: flex-start;
+  }
+
+  .photo-upload-form {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .actions {
