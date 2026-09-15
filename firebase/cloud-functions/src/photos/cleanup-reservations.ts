@@ -55,7 +55,7 @@ async function removeExpiredReservation(
 
 export const cleanupExpiredPhotoReservations = onSchedule(
   {
-    schedule: 'every 15 minutes',
+    schedule: 'every 1 hours',
     region: 'us-central1',
     timeoutSeconds: 120,
     memory: '256MiB',
