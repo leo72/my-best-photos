@@ -3,8 +3,8 @@ import { Logo } from './logo';
 
 const productLinks = [
   { label: 'Features', href: '#' },
-  { label: 'Pricing', href: '#' },
-  { label: 'Explore', href: '#' },
+  { label: 'Pricing', href: '#/pricing' },
+  { label: 'Examples', href: '#/examples' },
 ] as const;
 
 const supportLinks = [

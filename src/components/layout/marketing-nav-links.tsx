@@ -3,8 +3,10 @@ import { HeaderNavLink } from './header-nav-link';
 export function MarketingNavLinks() {
   return (
     <>
-      <HeaderNavLink to="/explore">Explore</HeaderNavLink>
-      <HeaderNavLink to="/pricing">Pricing</HeaderNavLink>
+      <HeaderNavLink to="/" end>
+        Home
+      </HeaderNavLink>
+      <HeaderNavLink to="/examples">Examples</HeaderNavLink>
     </>
   );
 }

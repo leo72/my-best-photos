@@ -36,7 +36,7 @@ export function HomeHero() {
           </Link>
 
           <Link
-            to="/explore"
+            to="/examples"
             className={`${secondaryButtonClassName} px-5 py-3`}
           >
             See example

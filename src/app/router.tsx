@@ -1,8 +1,10 @@
 import { createHashRouter } from 'react-router-dom';
 
 import { CreatePage } from '../pages/create-page';
+import { ExamplesPage } from '../pages/examples-page';
 import { HomePage } from '../pages/home-page';
 import { PlaceholderPage } from '../pages/placeholder-page';
+import { PricingPage } from '../pages/pricing-page';
 import { SignInPage } from '../pages/sign-in-page';
 
 export const router = createHashRouter([
@@ -11,22 +13,12 @@ export const router = createHashRouter([
     element: <HomePage />,
   },
   {
-    path: '/explore',
-    element: (
-      <PlaceholderPage
-        title="Explore"
-        description="Public pages will show up here soon."
-      />
-    ),
+    path: '/examples',
+    element: <ExamplesPage />,
   },
   {
     path: '/pricing',
-    element: (
-      <PlaceholderPage
-        title="Pricing"
-        description="Pricing details will show up here soon."
-      />
-    ),
+    element: <PricingPage />,
   },
   {
     path: '/sign-in',

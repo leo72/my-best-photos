@@ -19,10 +19,10 @@ export function HeaderNavLink({
       end={end}
       className={({ isActive }) =>
         [
-          'inline-flex h-16 items-center border-b-2 text-sm no-underline transition-colors',
+          'inline-flex items-center rounded-full px-3 py-1.5 text-sm no-underline transition-colors',
           isActive
-            ? 'border-slate-950 font-medium text-slate-950'
-            : 'border-transparent text-slate-500 hover:text-slate-950',
+            ? 'bg-slate-100 font-medium text-slate-950'
+            : 'text-slate-500 hover:text-slate-950',
         ].join(' ')
       }
     >
