@@ -82,7 +82,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white">
       <Container className="py-12 sm:py-16">
-        <div className="grid gap-10 sm:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))] lg:grid-cols-[minmax(0,1.6fr)_repeat(2,minmax(0,0.7fr))_minmax(0,1fr)]">
+        <div className="grid gap-10 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,1fr)]">
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm leading-6 text-slate-500">
@@ -113,15 +113,17 @@ export function SiteFooter() {
             </div>
           </div>
 
-          <FooterLinkList title="Product" links={productLinks} />
-          <FooterLinkList title="Support" links={supportLinks} />
+          <div className="grid grid-cols-2 gap-8">
+            <FooterLinkList title="Product" links={productLinks} />
+            <FooterLinkList title="Support" links={supportLinks} />
+          </div>
 
-          <div className="sm:col-span-3 lg:col-span-1 lg:text-right">
+          <div className="sm:col-span-2 lg:col-span-1 lg:text-right">
             <p className="text-sm text-slate-500">
               © 2026 My Best Photos
             </p>
             <p className="mt-2 text-sm text-slate-500">
-              Made with ❤️ for photographers
+              Made with ❤️ for everyone
             </p>
           </div>
         </div>

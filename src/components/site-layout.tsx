@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { SiteFooter } from './site-footer';
 import { SiteHeader } from './site-header';
+import { TopMenu } from './top-menu';
 
 interface SiteLayoutProps {
   headerActions?: ReactNode;
@@ -14,7 +15,7 @@ export function SiteLayout({
 }: SiteLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-950">
-      <SiteHeader>{headerActions}</SiteHeader>
+      <SiteHeader>{headerActions ?? <TopMenu />}</SiteHeader>
       <div className="flex-1">{children}</div>
       <SiteFooter />
     </div>
