@@ -1,5 +1,3 @@
-export type AuthAction = 'register' | 'login';
-
 export interface AuthUser {
   id: string;
   email: string | null;

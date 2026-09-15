@@ -1,3 +1,7 @@
+import {
+  ArrowTopRightOnSquareIcon,
+  ChevronDownIcon,
+} from '@heroicons/react/24/outline';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -8,38 +12,7 @@ import type { AuthUser } from '../features/auth/auth-session';
 
 import { primaryButtonClassName } from './button';
 import { HeaderNavLink } from './header-nav-link';
-
-function ExternalLinkIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 16 16"
-      className="size-3.5 fill-none stroke-current stroke-[1.5]"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M6.5 3.5H3.5A1 1 0 0 0 2.5 4.5v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-3M9.5 2.5h4v4M7 9l6.5-6.5"
-      />
-    </svg>
-  );
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 16 16"
-      className="size-4 fill-none stroke-current stroke-[1.5]"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4 6l4 4 4-4"
-      />
-    </svg>
-  );
-}
+import { MarketingNavLinks } from './marketing-nav-links';
 
 function getDisplayName(user: AuthUser): string {
   if (!user.email) {
@@ -65,11 +38,10 @@ function GuestTopMenu() {
       aria-label="Primary"
       className="flex items-center gap-5 sm:gap-6"
     >
-      <HeaderNavLink to="/explore">Explore</HeaderNavLink>
-      <HeaderNavLink to="/pricing">Pricing</HeaderNavLink>
+      <MarketingNavLinks />
       <HeaderNavLink to="/sign-in">Sign in</HeaderNavLink>
       <Link
-        to="/sign-in"
+        to="/create"
         className={`hidden rounded-xl sm:inline-flex ${primaryButtonClassName}`}
       >
         Create your page
@@ -131,7 +103,7 @@ function UserMenu({ user }: { user: AuthUser }) {
           {getInitials(displayName)}
         </span>
         <span className="hidden sm:inline">{displayName}</span>
-        <ChevronDownIcon />
+        <ChevronDownIcon className="size-4" />
       </button>
 
       {isOpen ? (
@@ -174,7 +146,7 @@ function AppTopMenu({ user }: { user: AuthUser }) {
         className="inline-flex h-16 items-center gap-1.5 text-sm text-slate-500 no-underline transition-colors hover:text-slate-950"
       >
         View my page
-        <ExternalLinkIcon />
+        <ArrowTopRightOnSquareIcon className="size-3.5" />
       </a>
 
       <UserMenu user={user} />

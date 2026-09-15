@@ -16,7 +16,7 @@ export function SiteLayout({
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-950">
       <SiteHeader>{headerActions ?? <TopMenu />}</SiteHeader>
-      <div className="flex-1">{children}</div>
+      <div className="flex flex-1 flex-col">{children}</div>
       <SiteFooter />
     </div>
   );
