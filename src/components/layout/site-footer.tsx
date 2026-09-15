@@ -1,3 +1,5 @@
+import { HeartIcon } from '@heroicons/react/24/solid';
+
 import { Container } from './container';
 import { Logo } from './logo';
 
@@ -122,8 +124,13 @@ export function SiteFooter() {
             <p className="text-sm text-slate-500">
               © 2026 My10Photos
             </p>
-            <p className="mt-2 text-sm text-slate-500">
-              Made with ❤️ for everyone
+            <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-slate-500">
+              Made with
+              <HeartIcon
+                className="size-4 text-red-500"
+                aria-hidden="true"
+              />
+              for everyone
             </p>
           </div>
         </div>
