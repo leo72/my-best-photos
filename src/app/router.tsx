@@ -3,8 +3,10 @@ import { createHashRouter } from 'react-router-dom';
 import { CreatePage } from '../pages/create-page';
 import { ExamplesPage } from '../pages/examples-page';
 import { HomePage } from '../pages/home-page';
+import { MyPhotosPage } from '../pages/my-photos-page';
 import { PlaceholderPage } from '../pages/placeholder-page';
 import { PricingPage } from '../pages/pricing-page';
+import { PublicPage } from '../pages/public-page';
 import { SettingsPage } from '../pages/settings-page';
 import { SignInPage } from '../pages/sign-in-page';
 
@@ -12,6 +14,14 @@ export const router = createHashRouter([
   {
     path: '/',
     element: <HomePage />,
+  },
+  {
+    path: '/photos',
+    element: <MyPhotosPage />,
+  },
+  {
+    path: '/u/:ownerId',
+    element: <PublicPage />,
   },
   {
     path: '/examples',

@@ -13,6 +13,7 @@ import {
   decideProcessingRetry,
   MAX_PHOTO_PROCESSING_ATTEMPTS,
 } from '../src/photos/processing-decision.js';
+import { canDeleteOwnerPhotoStatus } from '../src/photos/delete-photo-decision.js';
 import { findAvailableSlot } from '../src/photos/slot-allocation.js';
 import {
   InvalidPhotoInputError,
@@ -186,5 +187,14 @@ describe('createImageDerivatives', () => {
     await expect(
       createImageDerivatives(Buffer.from('not-an-image')),
     ).rejects.toThrow();
+  });
+});
+
+describe('canDeleteOwnerPhotoStatus', () => {
+  it('allows ready and failed photos only', () => {
+    expect(canDeleteOwnerPhotoStatus('ready')).toBe(true);
+    expect(canDeleteOwnerPhotoStatus('failed')).toBe(true);
+    expect(canDeleteOwnerPhotoStatus('reserved')).toBe(false);
+    expect(canDeleteOwnerPhotoStatus('processing')).toBe(false);
   });
 });

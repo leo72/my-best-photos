@@ -10,3 +10,6 @@ export {
 export {
   cancelPhotoUpload,
 } from './photos/cancel-photo-upload.js';
+export {
+  deletePhoto,
+} from './photos/delete-photo.js';

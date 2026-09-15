@@ -13,6 +13,8 @@ const USER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'auth/weak-password': 'Choose a stronger password',
   'functions/resource-exhausted':
     'All photo slots are occupied',
+  'functions/failed-precondition':
+    'Photo cannot be removed while it is still processing',
   'functions/unauthenticated':
     'Sign in before uploading a photo',
   'storage/unauthorized':

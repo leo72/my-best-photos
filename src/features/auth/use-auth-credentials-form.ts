@@ -49,7 +49,7 @@ export function useAuthCredentialsForm({
         await authService.login(email.trim(), password);
       }
 
-      void navigate('/');
+      void navigate('/photos');
     } catch (error) {
       logClientError(logMessage, error);
       setMessage(getUserErrorMessage(error, errorFallback));

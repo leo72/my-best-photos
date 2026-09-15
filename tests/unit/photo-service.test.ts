@@ -11,6 +11,7 @@ import {
 } from '../../src/features/photos/photo-service';
 
 import type {
+  OwnerPhoto,
   PhotoReservation,
   PublicPhoto,
   ReservePhotoInput,
@@ -34,6 +35,22 @@ class FakePhotoRepository implements PhotoRepository {
     onPhotos([]);
     return () => undefined;
   }
+
+  public subscribeToOwnerPublicPhotos(
+    _ownerId: string,
+    onPhotos: (photos: PublicPhoto[]) => void,
+  ): () => void {
+    onPhotos([]);
+    return () => undefined;
+  }
+
+  public subscribeToOwnerPhotos(
+    _ownerId: string,
+    onPhotos: (photos: OwnerPhoto[]) => void,
+  ): () => void {
+    onPhotos([]);
+    return () => undefined;
+  }
 }
 
 class FakePhotoUploadGateway implements PhotoUploadGateway {
@@ -44,6 +61,7 @@ class FakePhotoUploadGateway implements PhotoUploadGateway {
     file: File;
   }> = [];
   public readonly cancellations: PhotoReservation[] = [];
+  public readonly deletedSlots: number[] = [];
   public uploadError: Error | null = null;
 
   public async reservePhoto(
@@ -57,6 +75,10 @@ class FakePhotoUploadGateway implements PhotoUploadGateway {
     value: PhotoReservation,
   ): Promise<void> {
     this.cancellations.push(value);
+  }
+
+  public async deletePhoto(slot: number): Promise<void> {
+    this.deletedSlots.push(slot);
   }
 
   public async uploadOriginal(
@@ -157,6 +179,31 @@ describe('createPhotoService', () => {
     expect(gateway.cancellations).toEqual([reservation]);
   });
 
+  it('deletes an owned photo slot', async () => {
+    const gateway = new FakePhotoUploadGateway();
+    const service = createPhotoService({
+      authSession: createAuthSession('owner'),
+      repository: new FakePhotoRepository(),
+      uploadGateway: gateway,
+    });
+
+    await service.deletePhoto(3);
+    expect(gateway.deletedSlots).toEqual([3]);
+  });
+
+  it('rejects delete without authentication', async () => {
+    const gateway = new FakePhotoUploadGateway();
+    const service = createPhotoService({
+      authSession: createAuthSession(null),
+      repository: new FakePhotoRepository(),
+      uploadGateway: gateway,
+    });
+
+    await expect(service.deletePhoto(1))
+      .rejects.toThrow('authentication-required');
+    expect(gateway.deletedSlots).toEqual([]);
+  });
+
   it('publishes resolved gallery URLs and unsubscribes', async () => {
     const unsubscribe = vi.fn();
     const photo: PublicPhoto = {
@@ -173,6 +220,14 @@ describe('createPhotoService', () => {
       subscribeToPublicPhotos(onPhotos): () => void {
         onPhotos([photo]);
         return unsubscribe;
+      },
+      subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+      subscribeToOwnerPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
       },
     };
     const service = createPhotoService({
@@ -195,6 +250,146 @@ describe('createPhotoService', () => {
             'https://example.test/owner/1/thumbnail.webp',
           optimizedUrl:
             'https://example.test/owner/1/optimized.webp',
+          originalFileName: null,
+        },
+      ]);
+    });
+
+    dispose();
+    expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it('publishes owner ready photos and pending counts', async () => {
+    const unsubscribe = vi.fn();
+    const readyPhoto: OwnerPhoto = {
+      id: '1',
+      ownerId: 'owner',
+      slot: 1,
+      status: 'ready',
+      originalFileName: 'mountains.jpg',
+      width: 1200,
+      height: 800,
+      errorCode: null,
+      createdAt: null,
+      updatedAt: new Date(2_000),
+      reservationExpiresAt: null,
+    };
+    const pendingPhoto: OwnerPhoto = {
+      id: '2',
+      ownerId: 'owner',
+      slot: 2,
+      status: 'processing',
+      originalFileName: null,
+      width: null,
+      height: null,
+      errorCode: null,
+      createdAt: null,
+      updatedAt: null,
+      reservationExpiresAt: null,
+    };
+    const repository: PhotoRepository = {
+      subscribeToPublicPhotos(onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+      subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+      subscribeToOwnerPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([readyPhoto, pendingPhoto]);
+        return unsubscribe;
+      },
+    };
+    const service = createPhotoService({
+      authSession: createAuthSession('owner'),
+      repository,
+      uploadGateway: new FakePhotoUploadGateway(),
+    });
+    const onPhotos = vi.fn();
+
+    const dispose = service.subscribeToMyPhotos(
+      onPhotos,
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => {
+      expect(onPhotos).toHaveBeenCalledWith({
+        readyPhotos: [
+          {
+            id: 'owner_1',
+            ownerId: 'owner',
+            slot: 1,
+            status: 'ready',
+            width: 1200,
+            height: 800,
+            createdAt: null,
+            updatedAt: new Date(2_000),
+            thumbnailUrl:
+              'https://example.test/owner/1/thumbnail.webp',
+            optimizedUrl:
+              'https://example.test/owner/1/optimized.webp',
+            originalFileName: 'mountains.jpg',
+          },
+        ],
+        pendingCount: 1,
+        failedCount: 0,
+      });
+    });
+
+    dispose();
+    expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it('publishes an owner public page without auth', async () => {
+    const unsubscribe = vi.fn();
+    const photo: PublicPhoto = {
+      id: 'owner_1',
+      ownerId: 'owner',
+      slot: 1,
+      status: 'ready',
+      width: 1200,
+      height: 800,
+      createdAt: null,
+      updatedAt: null,
+    };
+    const repository: PhotoRepository = {
+      subscribeToPublicPhotos(onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+      subscribeToOwnerPublicPhotos(ownerId, onPhotos): () => void {
+        expect(ownerId).toBe('owner');
+        onPhotos([photo]);
+        return unsubscribe;
+      },
+      subscribeToOwnerPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+    };
+    const service = createPhotoService({
+      authSession: createAuthSession(null),
+      repository,
+      uploadGateway: new FakePhotoUploadGateway(),
+    });
+    const onPhotos = vi.fn();
+
+    const dispose = service.subscribeToPublicPage(
+      'owner',
+      onPhotos,
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => {
+      expect(onPhotos).toHaveBeenCalledWith([
+        {
+          ...photo,
+          thumbnailUrl:
+            'https://example.test/owner/1/thumbnail.webp',
+          optimizedUrl:
+            'https://example.test/owner/1/optimized.webp',
+          originalFileName: null,
         },
       ]);
     });

@@ -8,7 +8,7 @@ interface RequireGuestProps {
   children: ReactNode;
 }
 
-/** Renders children only for signed-out users; otherwise redirects home. */
+/** Renders children only for signed-out users; otherwise redirects to My Photos. */
 export function RequireGuest({ children }: RequireGuestProps) {
   const { user, isReady } = useAuth();
 
@@ -17,7 +17,7 @@ export function RequireGuest({ children }: RequireGuestProps) {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/photos" replace />;
   }
 
   return children;

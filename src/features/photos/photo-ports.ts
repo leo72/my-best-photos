@@ -1,4 +1,5 @@
 import type {
+  OwnerPhoto,
   PhotoReservation,
   PublicPhoto,
   ReservePhotoInput,
@@ -13,6 +14,16 @@ export interface PhotoRepository {
     onPhotos: (photos: PublicPhoto[]) => void,
     onError: (error: unknown) => void,
   ): () => void;
+  subscribeToOwnerPublicPhotos(
+    ownerId: string,
+    onPhotos: (photos: PublicPhoto[]) => void,
+    onError: (error: unknown) => void,
+  ): () => void;
+  subscribeToOwnerPhotos(
+    ownerId: string,
+    onPhotos: (photos: OwnerPhoto[]) => void,
+    onError: (error: unknown) => void,
+  ): () => void;
 }
 
 export interface PhotoUploadGateway {
@@ -22,6 +33,7 @@ export interface PhotoUploadGateway {
   cancelReservation(
     reservation: PhotoReservation,
   ): Promise<void>;
+  deletePhoto(slot: number): Promise<void>;
   uploadOriginal(
     ownerId: string,
     reservation: PhotoReservation,

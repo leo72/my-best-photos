@@ -68,6 +68,10 @@ export function createFirebasePhotoUploadGateway(): PhotoUploadGateway {
     CancelReservationInput,
     void
   >(firebaseFunctions, 'cancelPhotoUpload');
+  const deletePhotoCallable = httpsCallable<
+    { slot: number },
+    void
+  >(firebaseFunctions, 'deletePhoto');
 
   return {
     async reservePhoto(input): Promise<PhotoReservation> {
@@ -80,6 +84,10 @@ export function createFirebasePhotoUploadGateway(): PhotoUploadGateway {
         slot: reservation.slot,
         reservationId: reservation.reservationId,
       });
+    },
+
+    async deletePhoto(slot): Promise<void> {
+      await deletePhotoCallable({ slot });
     },
 
     async uploadOriginal(

@@ -2,6 +2,9 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { useAppServices } from '../../app/providers';
 import { useAuth } from '../../features/auth/auth-provider';
+import {
+  getPublicPagePath,
+} from '../../features/photos/public-page-path';
 
 import {
   primaryButtonClassName,
@@ -30,15 +33,21 @@ function GuestTopMenu() {
 
 function AppTopMenu() {
   const { authService } = useAppServices();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <nav
       aria-label="Primary"
       className="flex items-center gap-4 sm:gap-6"
     >
-      <HeaderNavLink to="/" end>
-        My Photos
+      <HeaderNavLink to="/photos">My Photos</HeaderNavLink>
+      <HeaderNavLink to={getPublicPagePath(user.id)}>
+        View public page
       </HeaderNavLink>
       <HeaderNavLink to="/settings">Settings</HeaderNavLink>
       <button
