@@ -62,7 +62,7 @@ function FooterLinkList({
       <h2 className="text-sm font-semibold text-slate-950">
         {title}
       </h2>
-      <ul className="mt-4 list-none space-y-3 p-0">
+      <ul className="mt-4 list-none space-y-1 p-0">
         {links.map((link) => (
           <li key={link.label}>
             <a
@@ -86,7 +86,7 @@ export function SiteFooter() {
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm leading-6 text-slate-500">
-              A simpler way to share what matters.
+              A simple place for your most important photos.
             </p>
             <div className="mt-5 flex items-center gap-4 text-slate-500">
               <a
@@ -120,7 +120,7 @@ export function SiteFooter() {
 
           <div className="sm:col-span-2 lg:col-span-1 lg:text-right">
             <p className="text-sm text-slate-500">
-              © 2026 My Best Photos
+              © 2026 My10Photos
             </p>
             <p className="mt-2 text-sm text-slate-500">
               Made with ❤️ for everyone
