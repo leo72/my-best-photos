@@ -4,6 +4,9 @@ A Firebase-backed photo gallery with authenticated uploads,
 transactional slot reservations, server-side image processing,
 and public optimized images.
 
+Frontend stack: Vite, React, TypeScript, Tailwind CSS,
+React Router, and the Firebase JS SDK.
+
 ## Prerequisites
 
 - Node.js 22 or newer
