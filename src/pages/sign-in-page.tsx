@@ -1,7 +1,7 @@
-import { AuthPageLayout } from '../features/auth/auth-page-layout';
+import { AuthPageLayout } from '../components/auth/page-layout';
+import { SignInHeaderActions } from '../components/auth/header-actions';
+import { SignInForm } from '../components/auth/sign-in-form';
 import { RequireGuest } from '../features/auth/require-guest';
-import { SignInHeaderActions } from '../features/auth/auth-header-actions';
-import { SignInForm } from '../features/auth/sign-in-form';
 
 export function SignInPage() {
   return (

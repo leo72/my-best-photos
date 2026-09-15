@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { Button } from '../../components/button';
+import { Button } from '../ui/button';
 import { GoogleIcon } from './google-icon';
 
 interface AuthCardProps {

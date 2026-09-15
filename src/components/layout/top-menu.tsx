@@ -5,12 +5,12 @@ import {
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { useAppServices } from '../app/providers';
-import { useAuth } from '../features/auth/auth-provider';
+import { useAppServices } from '../../app/providers';
+import { useAuth } from '../../features/auth/auth-provider';
 
-import type { AuthUser } from '../features/auth/auth-session';
+import type { AuthUser } from '../../features/auth/auth-session';
 
-import { primaryButtonClassName } from './button';
+import { primaryButtonClassName } from '../ui/button';
 import { HeaderNavLink } from './header-nav-link';
 import { MarketingNavLinks } from './marketing-nav-links';
 

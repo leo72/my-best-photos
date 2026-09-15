@@ -1,13 +1,12 @@
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
-
-import { Button } from '../../components/button';
-import { TextLink, TextLinkButton } from '../../components/text-link';
-import { AuthCard } from './auth-card';
-import { EmailField, PasswordField } from './auth-fields';
-import { AuthFormMessage } from './auth-form-message';
-import { useAuthCredentialsForm } from './use-auth-credentials-form';
+import { useAuthCredentialsForm } from '../../features/auth/use-auth-credentials-form';
+import { Button } from '../ui/button';
+import { TextLink, TextLinkButton } from '../ui/text-link';
+import { AuthCard } from './card';
+import { EmailField, PasswordField } from './fields';
+import { AuthFormMessage } from './form-message';
 
 export function SignInForm() {
   const {

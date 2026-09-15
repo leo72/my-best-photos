@@ -1,5 +1,5 @@
-import { Container } from '../components/container';
-import { SiteLayout } from '../components/site-layout';
+import { Container } from '../components/layout/container';
+import { SiteLayout } from '../components/layout/site-layout';
 
 interface PlaceholderPageProps {
   title: string;

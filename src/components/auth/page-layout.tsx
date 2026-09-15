@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { Container } from '../../components/container';
-import { SiteLayout } from '../../components/site-layout';
+import { Container } from '../layout/container';
+import { SiteLayout } from '../layout/site-layout';
 
 interface AuthPageLayoutProps {
   headerActions: ReactNode;

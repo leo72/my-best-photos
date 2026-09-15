@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
+import { MarketingNavLinks } from '../layout/marketing-nav-links';
 import {
   primaryButtonClassName,
   secondaryButtonClassName,
-} from '../../components/button';
-import { MarketingNavLinks } from '../../components/marketing-nav-links';
-import { TextLink } from '../../components/text-link';
+} from '../ui/button';
+import { TextLink } from '../ui/text-link';
 
 function AuthHeaderNav({
   children,
