@@ -5,6 +5,7 @@ import { ExamplesPage } from '../pages/examples-page';
 import { HomePage } from '../pages/home-page';
 import { PlaceholderPage } from '../pages/placeholder-page';
 import { PricingPage } from '../pages/pricing-page';
+import { SettingsPage } from '../pages/settings-page';
 import { SignInPage } from '../pages/sign-in-page';
 
 export const router = createHashRouter([
@@ -19,6 +20,10 @@ export const router = createHashRouter([
   {
     path: '/pricing',
     element: <PricingPage />,
+  },
+  {
+    path: '/settings',
+    element: <SettingsPage />,
   },
   {
     path: '/sign-in',

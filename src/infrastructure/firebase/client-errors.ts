@@ -5,6 +5,9 @@ const USER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
     'An account already exists for this email',
   'auth/invalid-credential': 'Invalid email or password',
   'auth/invalid-email': 'Enter a valid email address',
+  'auth/wrong-password': 'Current password is incorrect',
+  'auth/requires-recent-login':
+    'Sign in again before changing your password',
   'auth/too-many-requests':
     'Too many attempts. Please try again later',
   'auth/weak-password': 'Choose a stronger password',

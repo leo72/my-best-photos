@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAppServices } from '../../app/providers';
@@ -31,7 +31,7 @@ export function useAuthCredentialsForm({
   const [isBusy, setIsBusy] = useState(false);
 
   async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
+    event: SubmitEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
 

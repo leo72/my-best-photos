@@ -1,7 +1,7 @@
 import {
   useRef,
   useState,
-  type FormEvent,
+  type SubmitEvent,
 } from 'react';
 
 import {
@@ -22,7 +22,7 @@ export function PhotoUploadForm() {
   const isEnabled = isAuthenticated && !isUploading;
 
   async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
+    event: SubmitEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
 

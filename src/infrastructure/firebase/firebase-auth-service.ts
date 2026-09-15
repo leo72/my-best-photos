@@ -1,8 +1,11 @@
 import {
+  EmailAuthProvider,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
   type User,
 } from 'firebase/auth';
 
@@ -18,6 +21,16 @@ function toAuthUser(user: User): AuthUser {
     id: user.uid,
     email: user.email,
   };
+}
+
+function requireCurrentUser(): User {
+  const user = firebaseAuth.currentUser;
+
+  if (!user || !user.email) {
+    throw new Error('authentication-required');
+  }
+
+  return user;
 }
 
 export function createFirebaseAuthService(): AuthService {
@@ -45,6 +58,20 @@ export function createFirebaseAuthService(): AuthService {
 
     async logout(): Promise<void> {
       await signOut(firebaseAuth);
+    },
+
+    async changePassword(
+      currentPassword,
+      newPassword,
+    ): Promise<void> {
+      const user = requireCurrentUser();
+      const credential = EmailAuthProvider.credential(
+        user.email ?? '',
+        currentPassword,
+      );
+
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
     },
 
     getCurrentUser(): AuthUser | null {
