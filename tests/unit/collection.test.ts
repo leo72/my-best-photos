@@ -14,7 +14,7 @@ import {
   titleForCollectionTypeChange,
   validateCollectionInput,
 } from '../../src/features/collection/collection-service';
-import { decodeCollectionProfile } from '../../src/infrastructure/firebase/firebase-collection-repository';
+import { decodeCollectionProfile } from '../../src/infrastructure/firebase/collection-decoder';
 
 describe('collection defaults', () => {
   it('maps purpose to public look', () => {
