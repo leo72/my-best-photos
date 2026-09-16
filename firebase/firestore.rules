@@ -10,6 +10,46 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == ownerId;
     }
 
+    function isCollectionType(value) {
+      return value in [
+        'year',
+        'collection',
+        'profile',
+      ];
+    }
+
+    function isValidCollectionWrite() {
+      return request.resource.data.keys().hasOnly([
+          'ownerId',
+          'collectionType',
+          'title',
+          'createdAt',
+          'updatedAt',
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && isCollectionType(request.resource.data.collectionType)
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.updatedAt is timestamp
+        && (
+          !('createdAt' in request.resource.data)
+          || request.resource.data.createdAt is timestamp
+        );
+    }
+
+    match /users/{ownerId} {
+      allow read: if true;
+      allow create: if isOwner(ownerId)
+        && isValidCollectionWrite()
+        && request.resource.data.createdAt is timestamp;
+      allow update: if isOwner(ownerId)
+        && isValidCollectionWrite()
+        && request.resource.data.createdAt
+          == resource.data.createdAt;
+      allow delete: if false;
+    }
+
     match /users/{ownerId}/photos/{slot} {
       allow read: if isOwner(ownerId);
       allow create, update, delete: if false;

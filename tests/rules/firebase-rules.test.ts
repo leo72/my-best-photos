@@ -10,6 +10,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import {
   getBytes,
@@ -173,6 +174,55 @@ describe('Firestore rules', () => {
           status: 'ready',
           ownerId: 'owner',
           slot: 2,
+        },
+      ),
+    );
+  });
+
+  it('allows public collection reads and owner writes', async () => {
+    const now = Timestamp.now();
+    const payload = {
+      ownerId: 'owner',
+      collectionType: 'collection',
+      title: 'My 10 Photos',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await assertSucceeds(
+      setDoc(
+        doc(
+          testEnvironment
+            .authenticatedContext('owner')
+            .firestore(),
+          'users/owner',
+        ),
+        payload,
+      ),
+    );
+
+    await assertSucceeds(
+      getDoc(
+        doc(
+          testEnvironment
+            .unauthenticatedContext()
+            .firestore(),
+          'users/owner',
+        ),
+      ),
+    );
+
+    await assertFails(
+      setDoc(
+        doc(
+          testEnvironment
+            .authenticatedContext('other')
+            .firestore(),
+          'users/owner',
+        ),
+        {
+          ...payload,
+          ownerId: 'other',
         },
       ),
     );

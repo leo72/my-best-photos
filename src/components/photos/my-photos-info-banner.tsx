@@ -11,10 +11,11 @@ export function MyPhotosInfoBanner() {
       </span>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-slate-950">
-          Each photo has its own direct link.
+          Your public page updates automatically.
         </p>
         <p className="mt-1 text-sm text-slate-600">
-          Your public page shows all your photos in one place.
+          You can change the purpose, title, or photos at any
+          time.
         </p>
       </div>
     </aside>
