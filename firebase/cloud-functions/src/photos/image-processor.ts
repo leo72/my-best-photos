@@ -79,7 +79,7 @@ export async function createImageDerivatives(
             fit: 'inside',
             withoutEnlargement: true,
           })
-          .webp({ quality: 76 })
+          .webp({ quality: 84 })
           .toBuffer({ resolveWithObject: true }),
       ]);
 

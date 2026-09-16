@@ -12,7 +12,7 @@ export {
 
 export const RESERVATION_TTL_MS = 15 * 60 * 1000;
 export const OPTIMIZED_MAX_SIZE = 2048;
-export const THUMBNAIL_MAX_SIZE = 480;
+export const THUMBNAIL_MAX_SIZE = 960;
 
 export type PrivatePhotoStatus =
   | 'reserved'

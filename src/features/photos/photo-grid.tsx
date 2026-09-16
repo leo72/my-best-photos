@@ -27,7 +27,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
             className="block bg-slate-200"
           >
             <img
-              src={photo.thumbnailUrl}
+              src={photo.optimizedUrl}
               alt="Gallery photo"
               loading="lazy"
               decoding="async"

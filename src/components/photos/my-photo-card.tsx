@@ -75,7 +75,7 @@ export function MyPhotoCard({ photo }: MyPhotoCardProps) {
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="relative bg-slate-100">
         <img
-          src={photo.thumbnailUrl}
+          src={photo.optimizedUrl}
           alt={title}
           loading="lazy"
           decoding="async"

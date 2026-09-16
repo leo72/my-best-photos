@@ -176,8 +176,8 @@ describe('createImageDerivatives', () => {
       height: 1024,
     });
     expect(result.thumbnail).toMatchObject({
-      width: 480,
-      height: 240,
+      width: 960,
+      height: 480,
     });
     expect(optimizedMetadata.format).toBe('webp');
     expect(thumbnailMetadata.format).toBe('webp');

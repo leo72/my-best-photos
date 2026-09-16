@@ -19,7 +19,7 @@ export function PublicPhotoCard({ photo }: PublicPhotoCardProps) {
         aria-label={`Open ${title}`}
       >
         <img
-          src={photo.thumbnailUrl}
+          src={photo.optimizedUrl}
           alt={title}
           loading="lazy"
           decoding="async"
