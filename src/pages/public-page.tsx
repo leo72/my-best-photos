@@ -153,12 +153,14 @@ function PublicPageContent({ ownerId }: { ownerId: string }) {
             Share
           </button>
           {isReady && !user ? (
-            <Link
-              to="/create"
-              className={`md:hidden ${primaryButtonClassName}`}
-            >
-              Create your page
-            </Link>
+            <div className="md:hidden">
+              <Link
+                to="/create"
+                className={primaryButtonClassName}
+              >
+                Create your page
+              </Link>
+            </div>
           ) : null}
         </div>
         {copyMessage ? (
