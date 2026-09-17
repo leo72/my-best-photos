@@ -5,6 +5,7 @@ import {
   THUMBNAIL_MAX_SIZE,
 } from './photo-contract.js';
 
+/** Sharp decode cap so a huge original cannot exhaust memory. */
 const MAX_INPUT_PIXELS = 40_000_000;
 
 export interface ImageDerivative {

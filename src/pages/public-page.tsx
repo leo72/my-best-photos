@@ -9,6 +9,7 @@ import {
 } from '../components/collection/public-collection-layouts';
 import { Container } from '../components/layout/container';
 import { SiteLayout } from '../components/layout/site-layout';
+import { primaryButtonClassName } from '../components/ui/button';
 import { TextLink } from '../components/ui/text-link';
 import { useAuth } from '../features/auth/auth-provider';
 import {
@@ -23,7 +24,7 @@ import {
 } from '../features/photos/use-public-page-photos';
 
 function PublicPageContent({ ownerId }: { ownerId: string }) {
-  const { user } = useAuth();
+  const { user, isReady } = useAuth();
   const collection = useCollection(ownerId);
   const pagePhotos = usePublicPagePhotos(ownerId);
   const [copyMessage, setCopyMessage] = useState('');
@@ -140,16 +141,26 @@ function PublicPageContent({ ownerId }: { ownerId: string }) {
       )}
 
       <div className="flex flex-col items-center gap-3">
-        <button
-          type="button"
-          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-50"
-          onClick={() => {
-            void copyPageLink();
-          }}
-        >
-          <LinkIcon className="size-5" aria-hidden="true" />
-          Share
-        </button>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-50"
+            onClick={() => {
+              void copyPageLink();
+            }}
+          >
+            <LinkIcon className="size-5" aria-hidden="true" />
+            Share
+          </button>
+          {isReady && !user ? (
+            <Link
+              to="/create"
+              className={`md:hidden ${primaryButtonClassName}`}
+            >
+              Create your page
+            </Link>
+          ) : null}
+        </div>
         {copyMessage ? (
           <p className="text-sm text-slate-500" role="status">
             {copyMessage}

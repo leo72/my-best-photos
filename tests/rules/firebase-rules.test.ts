@@ -30,6 +30,15 @@ const validFile = new Uint8Array([1, 2, 3]);
 
 let testEnvironment: RulesTestEnvironment;
 
+function authContext(
+  userId: string,
+  emailVerified = true,
+) {
+  return testEnvironment.authenticatedContext(userId, {
+    email_verified: emailVerified,
+  });
+}
+
 async function seedReservation(
   ownerId: string,
   slot: number,
@@ -64,10 +73,9 @@ async function uploadOriginal(
   reservationId: string,
   bytes = validFile,
   contentType = 'image/jpeg',
+  emailVerified = true,
 ): Promise<void> {
-  const context = testEnvironment.authenticatedContext(
-    authenticatedUserId,
-  );
+  const context = authContext(authenticatedUserId, emailVerified);
 
   await uploadBytes(
     ref(
@@ -119,16 +127,14 @@ describe('Firestore rules', () => {
 
     const ownerRead = getDoc(
       doc(
-        testEnvironment
-          .authenticatedContext('owner')
+        authContext('owner')
           .firestore(),
         'users/owner/photos/1',
       ),
     );
     const otherRead = getDoc(
       doc(
-        testEnvironment
-          .authenticatedContext('other')
+        authContext('other')
           .firestore(),
         'users/owner/photos/1',
       ),
@@ -165,8 +171,7 @@ describe('Firestore rules', () => {
     await assertFails(
       setDoc(
         doc(
-          testEnvironment
-            .authenticatedContext('owner')
+          authContext('owner')
             .firestore(),
           'publicPhotos/owner_2',
         ),
@@ -192,8 +197,7 @@ describe('Firestore rules', () => {
     await assertSucceeds(
       setDoc(
         doc(
-          testEnvironment
-            .authenticatedContext('owner')
+          authContext('owner')
             .firestore(),
           'users/owner',
         ),
@@ -215,14 +219,44 @@ describe('Firestore rules', () => {
     await assertFails(
       setDoc(
         doc(
-          testEnvironment
-            .authenticatedContext('other')
+          authContext('other')
             .firestore(),
           'users/owner',
         ),
         {
           ...payload,
           ownerId: 'other',
+        },
+      ),
+    );
+  });
+
+  it('denies unverified owners from private reads and writes', async () => {
+    const now = Timestamp.now();
+    await seedReservation('owner', 1, 'reservation');
+
+    await assertFails(
+      getDoc(
+        doc(
+          authContext('owner', false)
+            .firestore(),
+          'users/owner/photos/1',
+        ),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(
+          authContext('owner', false)
+            .firestore(),
+          'users/owner',
+        ),
+        {
+          ownerId: 'owner',
+          collectionType: 'collection',
+          title: 'My 10 Photos',
+          createdAt: now,
+          updatedAt: now,
         },
       ),
     );
@@ -334,6 +368,22 @@ describe('Storage rules', () => {
           anonymousStorage,
           'photos/owner/1/original',
         ),
+      ),
+    );
+  });
+
+  it('rejects unverified owner uploads', async () => {
+    await seedReservation('owner', 1, 'reservation');
+
+    await assertFails(
+      uploadOriginal(
+        'owner',
+        'owner',
+        1,
+        'reservation',
+        validFile,
+        'image/jpeg',
+        false,
       ),
     );
   });

@@ -15,6 +15,8 @@ const USER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
     'All photo slots are occupied',
   'functions/failed-precondition':
     'Photo cannot be removed while it is still processing',
+  'functions/permission-denied':
+    'Verify your email before managing photos',
   'functions/unauthenticated':
     'Sign in before uploading a photo',
   'storage/unauthorized':

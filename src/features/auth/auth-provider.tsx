@@ -31,12 +31,40 @@ export function AuthProvider({
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    let isCancelled = false;
+    let isSessionReady = false;
+
     const unsubscribe = authService.subscribe((nextUser) => {
+      if (isCancelled || !isSessionReady) {
+        return;
+      }
+
       setUser(nextUser);
-      setIsReady(true);
     });
 
-    return unsubscribe;
+    void authService
+      .reloadCurrentUser()
+      .then((nextUser) => {
+        if (!isCancelled) {
+          setUser(nextUser);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setUser(authService.getCurrentUser());
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          isSessionReady = true;
+          setIsReady(true);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+      unsubscribe();
+    };
   }, [authService]);
 
   return (

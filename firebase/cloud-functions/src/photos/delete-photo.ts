@@ -2,6 +2,7 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 
 import { adminDb } from '../firebase-admin.js';
+import { requireVerifiedUserId } from '../require-verified-user.js';
 import {
   getPrivatePhotoPath,
   getPublicPhotoId,
@@ -47,15 +48,8 @@ export const deletePhoto = onCall(
     memory: '256MiB',
   },
   async (request): Promise<void> => {
-    if (!request.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'Authentication is required',
-      );
-    }
-
+    const ownerId = requireVerifiedUserId(request.auth);
     const input = parseDeletePhotoInput(request.data);
-    const ownerId = request.auth.uid;
     const privateRef = adminDb.doc(
       getPrivatePhotoPath(ownerId, input.slot),
     );

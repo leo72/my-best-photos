@@ -12,6 +12,7 @@ import { PricingPage } from '../pages/pricing-page';
 import { PublicPage } from '../pages/public-page';
 import { SettingsPage } from '../pages/settings-page';
 import { SignInPage } from '../pages/sign-in-page';
+import { VerifyEmailPage } from '../pages/verify-email-page';
 
 /** Top-level routes; public galleries live at `/u/:ownerId`. */
 export const router = createHashRouter([
@@ -46,6 +47,10 @@ export const router = createHashRouter([
   {
     path: '/create',
     element: <CreatePage />,
+  },
+  {
+    path: '/verify-email',
+    element: <VerifyEmailPage />,
   },
   {
     path: '/terms',

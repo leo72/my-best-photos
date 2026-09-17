@@ -1,3 +1,4 @@
+import { HttpsError } from 'firebase-functions/v2/https';
 import sharp from 'sharp';
 import {
   afterEach,
@@ -7,6 +8,7 @@ import {
 } from 'vitest';
 
 import { getPhotoStorageBucket } from '../src/firebase-admin.js';
+import { requireVerifiedUserId } from '../src/require-verified-user.js';
 import { createImageDerivatives } from '../src/photos/image-processor.js';
 import {
   decidePhotoProcessing,
@@ -196,5 +198,37 @@ describe('canDeleteOwnerPhotoStatus', () => {
     expect(canDeleteOwnerPhotoStatus('failed')).toBe(true);
     expect(canDeleteOwnerPhotoStatus('reserved')).toBe(false);
     expect(canDeleteOwnerPhotoStatus('processing')).toBe(false);
+  });
+});
+
+describe('requireVerifiedUserId', () => {
+  it('returns the uid for a verified user', () => {
+    expect(requireVerifiedUserId({
+      uid: 'owner',
+      token: { email_verified: true },
+    })).toBe('owner');
+  });
+
+  it('rejects missing auth', () => {
+    try {
+      requireVerifiedUserId(undefined);
+      throw new Error('expected HttpsError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpsError);
+      expect((error as HttpsError).code).toBe('unauthenticated');
+    }
+  });
+
+  it('rejects unverified auth', () => {
+    try {
+      requireVerifiedUserId({
+        uid: 'owner',
+        token: { email_verified: false },
+      });
+      throw new Error('expected HttpsError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpsError);
+      expect((error as HttpsError).code).toBe('permission-denied');
+    }
   });
 });

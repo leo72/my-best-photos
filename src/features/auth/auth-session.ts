@@ -1,6 +1,7 @@
 export interface AuthUser {
   id: string;
   email: string | null;
+  emailVerified: boolean;
 }
 
 export interface AuthService {
@@ -11,6 +12,8 @@ export interface AuthService {
     currentPassword: string,
     newPassword: string,
   ): Promise<void>;
+  reloadCurrentUser(): Promise<AuthUser | null>;
+  resendEmailVerification(): Promise<void>;
   getCurrentUser(): AuthUser | null;
   subscribe(
     callback: (user: AuthUser | null) => void,

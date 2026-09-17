@@ -58,6 +58,30 @@ function GuestTopMenu() {
   );
 }
 
+function UnverifiedTopMenu() {
+  const { authService } = useAppServices();
+  const navigate = useNavigate();
+
+  async function signOut(): Promise<void> {
+    await authService.logout();
+    void navigate('/');
+  }
+
+  return (
+    <nav aria-label="Primary" className="flex items-center">
+      <button
+        type="button"
+        className={secondaryButtonClassName}
+        onClick={() => {
+          void signOut();
+        }}
+      >
+        Sign out
+      </button>
+    </nav>
+  );
+}
+
 function AppTopMenu() {
   const { authService } = useAppServices();
   const { user } = useAuth();
@@ -140,8 +164,12 @@ export function TopMenu() {
     );
   }
 
-  if (user) {
+  if (user?.emailVerified) {
     return <AppTopMenu />;
+  }
+
+  if (user) {
+    return <UnverifiedTopMenu />;
   }
 
   return <GuestTopMenu />;

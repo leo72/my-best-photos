@@ -1,8 +1,10 @@
 import {
   EmailAuthProvider,
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
+  onIdTokenChanged,
   reauthenticateWithCredential,
+  reload,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
@@ -20,6 +22,7 @@ function toAuthUser(user: User): AuthUser {
   return {
     id: user.uid,
     email: user.email,
+    emailVerified: user.emailVerified,
   };
 }
 
@@ -33,6 +36,13 @@ function requireCurrentUser(): User {
   return user;
 }
 
+function emailActionSettings() {
+  return {
+    url: `${window.location.origin}/#/photos`,
+    handleCodeInApp: false,
+  };
+}
+
 export function createFirebaseAuthService(): AuthService {
   return {
     async register(email, password): Promise<AuthUser> {
@@ -42,6 +52,11 @@ export function createFirebaseAuthService(): AuthService {
           email,
           password,
         );
+
+      await sendEmailVerification(
+        credential.user,
+        emailActionSettings(),
+      );
 
       return toAuthUser(credential.user);
     },
@@ -74,6 +89,27 @@ export function createFirebaseAuthService(): AuthService {
       await updatePassword(user, newPassword);
     },
 
+    async reloadCurrentUser(): Promise<AuthUser | null> {
+      await firebaseAuth.authStateReady();
+      const user = firebaseAuth.currentUser;
+
+      if (!user) {
+        return null;
+      }
+
+      await reload(user);
+      await user.getIdToken(true);
+
+      return firebaseAuth.currentUser
+        ? toAuthUser(firebaseAuth.currentUser)
+        : null;
+    },
+
+    async resendEmailVerification(): Promise<void> {
+      const user = requireCurrentUser();
+      await sendEmailVerification(user, emailActionSettings());
+    },
+
     getCurrentUser(): AuthUser | null {
       return firebaseAuth.currentUser
         ? toAuthUser(firebaseAuth.currentUser)
@@ -81,7 +117,7 @@ export function createFirebaseAuthService(): AuthService {
     },
 
     subscribe(callback): () => void {
-      return onAuthStateChanged(
+      return onIdTokenChanged(
         firebaseAuth,
         (user) => callback(user ? toAuthUser(user) : null),
       );

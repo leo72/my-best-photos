@@ -5,6 +5,7 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 
 import { adminDb } from '../firebase-admin.js';
+import { requireVerifiedUserId } from '../require-verified-user.js';
 import {
   getPrivatePhotoPath,
   getPublicPhotoId,
@@ -160,16 +161,11 @@ export const reservePhotoUpload = onCall(
     memory: '256MiB',
   },
   async (request): Promise<ReservePhotoResult> => {
-    if (!request.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'Authentication is required',
-      );
-    }
+    const ownerId = requireVerifiedUserId(request.auth);
 
     try {
       const input = parseReservePhotoInput(request.data);
-      return await reservePhotoSlot(request.auth.uid, input);
+      return await reservePhotoSlot(ownerId, input);
     } catch (error) {
       if (error instanceof InvalidPhotoInputError) {
         throw new HttpsError('invalid-argument', error.message);
@@ -183,7 +179,7 @@ export const reservePhotoUpload = onCall(
       }
 
       logger.error('Failed to reserve photo upload slot', {
-        ownerId: request.auth.uid,
+        ownerId,
         errorName:
           error instanceof Error ? error.name : 'UnknownError',
       });

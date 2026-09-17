@@ -1,3 +1,4 @@
+/** Processing retries after a failed derivative build before marking the photo failed. */
 export const MAX_PHOTO_PROCESSING_ATTEMPTS = 5;
 
 export type ProcessingDecision =

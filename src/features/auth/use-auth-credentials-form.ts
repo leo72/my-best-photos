@@ -6,6 +6,7 @@ import {
   getUserErrorMessage,
   logClientError,
 } from '../../infrastructure/firebase/client-errors';
+import { getSignedInPath } from './signed-in-path';
 
 const GOOGLE_UNAVAILABLE_MESSAGE =
   'Google sign-in is not available yet. Use email and password.';
@@ -43,13 +44,12 @@ export function useAuthCredentialsForm({
     setMessage('');
 
     try {
-      if (action === 'register') {
-        await authService.register(email.trim(), password);
-      } else {
-        await authService.login(email.trim(), password);
-      }
+      const nextUser =
+        action === 'register'
+          ? await authService.register(email.trim(), password)
+          : await authService.login(email.trim(), password);
 
-      void navigate('/photos');
+      void navigate(getSignedInPath(nextUser));
     } catch (error) {
       logClientError(logMessage, error);
       setMessage(getUserErrorMessage(error, errorFallback));

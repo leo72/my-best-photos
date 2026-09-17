@@ -4,6 +4,7 @@ service firebase.storage {
   match /b/{bucket}/o {
     function isOwner(ownerId) {
       return request.auth != null
+        && request.auth.token.email_verified == true
         && request.auth.uid == ownerId;
     }
 

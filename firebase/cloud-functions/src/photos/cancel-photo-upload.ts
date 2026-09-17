@@ -2,6 +2,7 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 
 import { adminBucket, adminDb } from '../firebase-admin.js';
+import { requireVerifiedUserId } from '../require-verified-user.js';
 import {
   getPrivatePhotoPath,
   getPhotoStorageBasePath,
@@ -51,17 +52,11 @@ export const cancelPhotoUpload = onCall(
     memory: '256MiB',
   },
   async (request): Promise<void> => {
-    if (!request.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'Authentication is required',
-      );
-    }
-
+    const ownerId = requireVerifiedUserId(request.auth);
     const input = parseCancelPhotoInput(request.data);
     const originalPath =
       `${getPhotoStorageBasePath(
-        request.auth.uid,
+        ownerId,
         input.slot,
       )}/original`;
     const [doesOriginalExist] =
@@ -71,7 +66,7 @@ export const cancelPhotoUpload = onCall(
       logger.info(
         'Kept reservation for an uploaded original',
         {
-          ownerId: request.auth.uid,
+          ownerId,
           slot: input.slot,
         },
       );
@@ -79,7 +74,7 @@ export const cancelPhotoUpload = onCall(
     }
 
     const photoRef = adminDb.doc(
-      getPrivatePhotoPath(request.auth.uid, input.slot),
+      getPrivatePhotoPath(ownerId, input.slot),
     );
     const wasCancelled = await adminDb.runTransaction(
       async (transaction) => {
@@ -104,9 +99,9 @@ export const cancelPhotoUpload = onCall(
     );
 
     if (wasCancelled) {
-      await deletePhotoFiles(request.auth.uid, input.slot);
+      await deletePhotoFiles(ownerId, input.slot);
       logger.info('Photo upload reservation cancelled', {
-        ownerId: request.auth.uid,
+        ownerId,
         slot: input.slot,
       });
     }

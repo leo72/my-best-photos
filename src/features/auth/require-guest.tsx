@@ -3,12 +3,13 @@ import { Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
 import { useAuth } from './auth-provider';
+import { getSignedInPath } from './signed-in-path';
 
 interface RequireGuestProps {
   children: ReactNode;
 }
 
-/** Renders children only for signed-out users; otherwise redirects to My Photos. */
+/** Renders children only for signed-out users; otherwise redirects. */
 export function RequireGuest({ children }: RequireGuestProps) {
   const { user, isReady } = useAuth();
 
@@ -17,7 +18,7 @@ export function RequireGuest({ children }: RequireGuestProps) {
   }
 
   if (user) {
-    return <Navigate to="/photos" replace />;
+    return <Navigate to={getSignedInPath(user)} replace />;
   }
 
   return children;
