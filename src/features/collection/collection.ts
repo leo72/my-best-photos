@@ -1,4 +1,4 @@
-export const MAX_COLLECTION_TITLE_LENGTH = 100;
+export const MAX_COLLECTION_TITLE_LENGTH = 128;
 
 export const COLLECTION_TYPES = [
   'year',
