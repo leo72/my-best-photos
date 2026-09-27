@@ -5,15 +5,14 @@ import { Logo } from './logo';
 
 const productLinks = [
   { label: 'Features', href: '#' },
-  { label: 'Pricing', href: '#/pricing' },
-  { label: 'Examples', href: '#/examples' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Examples', href: '/examples' },
 ] as const;
 
 const supportLinks = [
-  { label: 'Help Center', href: '#' },
   { label: 'Contact', href: '#' },
-  { label: 'Privacy', href: '#' },
-  { label: 'Terms', href: '#' },
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
 ] as const;
 
 function GitHubIcon() {

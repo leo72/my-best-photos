@@ -68,7 +68,22 @@ export function AuthProvider({
   }, [authService]);
 
   return (
-    <AuthContext.Provider value={{ user, isReady }}>
+    <AuthStateProvider value={{ user, isReady }}>
+      {children}
+    </AuthStateProvider>
+  );
+}
+
+/** Provides a fixed auth state. Used to prerender logged-out pages. */
+export function AuthStateProvider({
+  value,
+  children,
+}: {
+  value: AuthContextValue;
+  children: ReactNode;
+}) {
+  return (
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

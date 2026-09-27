@@ -38,7 +38,7 @@ function requireCurrentUser(): User {
 
 function emailActionSettings() {
   return {
-    url: `${window.location.origin}/#/photos`,
+    url: `${window.location.origin}/photos`,
     handleCodeInApp: false,
   };
 }

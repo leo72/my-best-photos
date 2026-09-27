@@ -1,7 +1,7 @@
 /**
- * Hash-router route table for marketing, auth, My Photos, and public pages.
+ * Path-router route table for marketing, auth, My Photos, and public pages.
  */
-import { createHashRouter } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 
 import { CreatePage } from '../pages/create-page';
 import { ExamplesPage } from '../pages/examples-page';
@@ -15,7 +15,7 @@ import { SignInPage } from '../pages/sign-in-page';
 import { VerifyEmailPage } from '../pages/verify-email-page';
 
 /** Top-level routes; public galleries live at `/u/:ownerId`. */
-export const router = createHashRouter([
+export const router = createBrowserRouter([
   {
     path: '/',
     element: <HomePage />,
