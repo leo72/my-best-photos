@@ -5,8 +5,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { AuthStateProvider } from '../features/auth/auth-provider';
 import { ExamplesPage } from '../pages/examples-page';
 import { HomePage } from '../pages/home-page';
-import { PlaceholderPage } from '../pages/placeholder-page';
 import { PricingPage } from '../pages/pricing-page';
+import { PrivacyPage } from '../pages/privacy-page';
+import { TermsPage } from '../pages/terms-page';
 
 interface MarketingPage {
   path: string;
@@ -49,27 +50,19 @@ const marketingPages: readonly MarketingPage[] = [
     path: '/terms',
     outFile: 'terms/index.html',
     title: 'Terms of Service — My10Photos',
-    description: 'Terms of Service will show up here soon.',
+    description:
+      'The rules for using My10Photos, a free place for up to 10 photos.',
     heading: 'Terms of Service',
-    element: (
-      <PlaceholderPage
-        title="Terms of Service"
-        description="Terms of Service will show up here soon."
-      />
-    ),
+    element: <TermsPage />,
   },
   {
     path: '/privacy',
     outFile: 'privacy/index.html',
     title: 'Privacy Policy — My10Photos',
-    description: 'Privacy Policy will show up here soon.',
+    description:
+      'How My10Photos handles your account, photos, and public page.',
     heading: 'Privacy Policy',
-    element: (
-      <PlaceholderPage
-        title="Privacy Policy"
-        description="Privacy Policy will show up here soon."
-      />
-    ),
+    element: <PrivacyPage />,
   },
 ];
 

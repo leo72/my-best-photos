@@ -7,11 +7,12 @@ import { CreatePage } from '../pages/create-page';
 import { ExamplesPage } from '../pages/examples-page';
 import { HomePage } from '../pages/home-page';
 import { MyPhotosPage } from '../pages/my-photos-page';
-import { PlaceholderPage } from '../pages/placeholder-page';
 import { PricingPage } from '../pages/pricing-page';
+import { PrivacyPage } from '../pages/privacy-page';
 import { PublicPage } from '../pages/public-page';
 import { SettingsPage } from '../pages/settings-page';
 import { SignInPage } from '../pages/sign-in-page';
+import { TermsPage } from '../pages/terms-page';
 import { VerifyEmailPage } from '../pages/verify-email-page';
 
 /** Top-level routes; public galleries live at `/u/:ownerId`. */
@@ -54,20 +55,10 @@ export const router = createBrowserRouter([
   },
   {
     path: '/terms',
-    element: (
-      <PlaceholderPage
-        title="Terms of Service"
-        description="Terms of Service will show up here soon."
-      />
-    ),
+    element: <TermsPage />,
   },
   {
     path: '/privacy',
-    element: (
-      <PlaceholderPage
-        title="Privacy Policy"
-        description="Privacy Policy will show up here soon."
-      />
-    ),
+    element: <PrivacyPage />,
   },
 ]);
