@@ -26,8 +26,10 @@ export function MyPhotosToolbar({
     errorMessage,
     isUploading,
     openFilePicker,
-    uploadFile,
-  } = usePhotoUpload();
+    uploadFiles,
+  } = usePhotoUpload({
+    remainingSlots: MAX_PHOTO_SLOTS - usedCount,
+  });
   const progressPercent = Math.min(
     100,
     Math.round((usedCount / MAX_PHOTO_SLOTS) * 100),
@@ -63,12 +65,11 @@ export function MyPhotosToolbar({
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
+            multiple
             className="sr-only"
             disabled={!canUpload || isUploading}
             onChange={(event) => {
-              void uploadFile(
-                event.target.files?.item(0) ?? null,
-              );
+              void uploadFiles(event.target.files);
             }}
           />
 
@@ -82,7 +83,7 @@ export function MyPhotosToolbar({
               className="size-5"
               aria-hidden="true"
             />
-            {isUploading ? 'Uploading…' : 'Upload photo'}
+            {isUploading ? 'Uploading…' : 'Upload photos'}
           </button>
 
           {publicPagePath ? (

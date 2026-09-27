@@ -37,7 +37,11 @@ export function MyPhotosFilledState({
         {photos.map((photo) => (
           <MyPhotoCard key={photo.id} photo={photo} />
         ))}
-        {canUpload ? <MyPhotosUploadSlot /> : null}
+        {canUpload ? (
+          <MyPhotosUploadSlot
+            remainingSlots={MAX_PHOTO_SLOTS - usedCount}
+          />
+        ) : null}
       </div>
 
       <MyPhotosInfoBanner />

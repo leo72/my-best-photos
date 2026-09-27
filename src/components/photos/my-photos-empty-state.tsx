@@ -10,7 +10,7 @@ export function MyPhotosEmptyState() {
     errorMessage,
     isUploading,
     openFilePicker,
-    uploadFile,
+    uploadFiles,
   } = usePhotoUpload();
 
   return (
@@ -29,10 +29,11 @@ export function MyPhotosEmptyState() {
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        multiple
         className="sr-only"
         disabled={isUploading}
         onChange={(event) => {
-          void uploadFile(event.target.files?.item(0) ?? null);
+          void uploadFiles(event.target.files);
         }}
       />
 
