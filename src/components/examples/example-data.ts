@@ -1,8 +1,12 @@
+export const DEFAULT_EXAMPLE_SET_URL =
+  'https://my10photos.com/u/KB9uRYSCauaLSvwSg6bDjgaj0gI3';
+
 export interface ExamplePhotoSet {
   id: string;
   title: string;
   description: string;
   handle: string;
+  url?: string;
   photos: readonly string[];
 }
 
@@ -64,6 +68,10 @@ export const EXAMPLE_SETS: readonly ExamplePhotoSet[] = [
     ],
   },
 ] as const;
+
+export function exampleCardUrl(example: ExamplePhotoSet): string {
+  return example.url ?? DEFAULT_EXAMPLE_SET_URL;
+}
 
 export function exampleSetUrl(handle: string): string {
   return `my10photos.com/${handle}`;

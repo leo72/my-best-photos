@@ -3,9 +3,9 @@ import {
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 
-import { Button } from '../ui/button';
+import { primaryButtonClassName } from '../ui/button';
 import {
-  exampleSetUrl,
+  exampleCardUrl,
   type ExamplePhotoSet,
 } from './example-data';
 
@@ -46,7 +46,7 @@ interface ExampleCardProps {
 }
 
 export function ExampleCard({ example }: ExampleCardProps) {
-  const url = exampleSetUrl(example.handle);
+  const url = exampleCardUrl(example);
 
   return (
     <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -61,18 +61,21 @@ export function ExampleCard({ example }: ExampleCardProps) {
         <ExamplePreviewGrid photos={example.photos} />
       </div>
 
-      <div className="mt-4 flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 text-sm text-slate-600">
+      <a
+        href={url}
+        className="mt-4 flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 text-sm text-slate-600 no-underline"
+      >
         <span className="min-w-0 flex-1 truncate">{url}</span>
         <ArrowTopRightOnSquareIcon
           className="size-4 shrink-0 text-slate-400"
           aria-hidden="true"
         />
-      </div>
+      </a>
 
-      <Button type="button" className="mt-4 w-full">
+      <a href={url} className={`${primaryButtonClassName} mt-4 w-full`}>
         View set
         <ArrowRightIcon className="size-4" />
-      </Button>
+      </a>
     </article>
   );
 }
