@@ -19,11 +19,19 @@ service cloud.firestore {
       ];
     }
 
+    // Keep in sync with MAX_PHOTO_SLOTS.
+    function isPhotoOrder(value) {
+      return value is list
+        && value.hasOnly([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        && value.toSet().size() == value.size();
+    }
+
     function isValidCollectionWrite() {
       return request.resource.data.keys().hasOnly([
           'ownerId',
           'collectionType',
           'title',
+          'photoOrder',
           'createdAt',
           'updatedAt',
         ])
@@ -34,6 +42,10 @@ service cloud.firestore {
         // Keep in sync with MAX_COLLECTION_TITLE_LENGTH.
         && request.resource.data.title.size() <= 128
         && request.resource.data.updatedAt is timestamp
+        && (
+          !('photoOrder' in request.resource.data)
+          || isPhotoOrder(request.resource.data.photoOrder)
+        )
         && (
           !('createdAt' in request.resource.data)
           || request.resource.data.createdAt is timestamp

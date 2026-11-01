@@ -13,4 +13,8 @@ export interface CollectionRepository {
     ownerId: string,
     input: CollectionProfileInput,
   ): Promise<void>;
+  savePhotoOrder(
+    ownerId: string,
+    photoOrder: readonly number[],
+  ): Promise<void>;
 }

@@ -76,7 +76,9 @@ function MyPhotosContent() {
 
       {readyPhotos.length > 0 ? (
         <MyPhotosFilledState
+          ownerId={user.id}
           photos={readyPhotos}
+          photoOrder={collection.profile.photoOrder}
           pendingCount={pendingCount}
           upload={upload}
         />

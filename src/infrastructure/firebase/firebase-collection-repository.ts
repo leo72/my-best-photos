@@ -3,6 +3,7 @@ import {
   doc,
   getDoc,
   onSnapshot,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -10,7 +11,10 @@ import {
 
 import { firebaseDb } from './client';
 import { decodeCollectionProfile } from './collection-decoder';
-import { getCollectionPath } from '../../features/collection/collection';
+import {
+  createDefaultCollectionProfile,
+  getCollectionPath,
+} from '../../features/collection/collection';
 import type { CollectionRepository } from '../../features/collection/collection-ports';
 
 export function createFirebaseCollectionRepository(): CollectionRepository {
@@ -67,6 +71,44 @@ export function createFirebaseCollectionRepository(): CollectionRepository {
         title: input.title,
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
+      });
+    },
+
+    async savePhotoOrder(ownerId, photoOrder): Promise<void> {
+      const reference = doc(
+        firebaseDb,
+        getCollectionPath(ownerId),
+      );
+
+      // Rules validate the whole document, so a legacy or missing
+      // profile is rewritten in its normalized form alongside the order.
+      await runTransaction(firebaseDb, async (transaction) => {
+        const existing = await transaction.get(reference);
+        const profile = (
+          existing.exists()
+            ? decodeCollectionProfile(ownerId, existing.data())
+            : null
+        ) ?? createDefaultCollectionProfile(ownerId);
+        const fields = {
+          ownerId,
+          collectionType: profile.collectionType,
+          title: profile.title,
+          photoOrder: [...photoOrder],
+          updatedAt: serverTimestamp(),
+        };
+
+        if (existing.exists()) {
+          transaction.update(reference, {
+            ...fields,
+            year: deleteField(),
+          });
+          return;
+        }
+
+        transaction.set(reference, {
+          ...fields,
+          createdAt: serverTimestamp(),
+        });
       });
     },
   };

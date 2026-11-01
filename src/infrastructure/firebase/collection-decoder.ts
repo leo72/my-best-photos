@@ -5,6 +5,7 @@ import {
   normalizeCollectionType,
   type CollectionProfile,
 } from '../../features/collection/collection';
+import { normalizePhotoOrder } from '../../features/photos/photo-order';
 
 function readDate(value: unknown): Date | null {
   return value instanceof Timestamp ? value.toDate() : null;
@@ -37,6 +38,8 @@ export function decodeCollectionProfile(
     ownerId,
     collectionType,
     title,
+    photoOrder:
+      'photoOrder' in value ? normalizePhotoOrder(value.photoOrder) : [],
     createdAt:
       'createdAt' in value ? readDate(value.createdAt) : null,
     updatedAt:

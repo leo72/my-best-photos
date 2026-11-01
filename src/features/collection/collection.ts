@@ -14,6 +14,8 @@ export interface CollectionProfile {
   ownerId: string;
   collectionType: CollectionType;
   title: string;
+  /** Photo slots in display order; slots not listed come first. */
+  photoOrder: readonly number[];
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -96,6 +98,7 @@ export function createDefaultCollectionProfile(
     ownerId,
     collectionType: 'collection',
     title: getDefaultCollectionTitle('collection'),
+    photoOrder: [],
     createdAt: null,
     updatedAt: null,
   };

@@ -93,3 +93,39 @@ export function useSaveCollection(ownerId: string | undefined) {
     saveCollection,
   };
 }
+
+export function useSavePhotoOrder(ownerId: string | undefined) {
+  const { collectionService } = useAppServices();
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  async function savePhotoOrder(
+    photoOrder: readonly number[],
+  ): Promise<boolean> {
+    if (!ownerId || isSaving) {
+      return false;
+    }
+
+    setIsSaving(true);
+    setErrorMessage('');
+
+    try {
+      await collectionService.savePhotoOrder(ownerId, photoOrder);
+      setIsSaving(false);
+      return true;
+    } catch (error) {
+      logClientError('Photo order save failed', error);
+      setErrorMessage(
+        getUserErrorMessage(error, 'Failed to save photo order'),
+      );
+      setIsSaving(false);
+      return false;
+    }
+  }
+
+  return {
+    isSaving,
+    errorMessage,
+    savePhotoOrder,
+  };
+}

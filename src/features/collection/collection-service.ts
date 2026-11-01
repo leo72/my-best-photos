@@ -7,6 +7,7 @@ import {
   type CollectionProfileInput,
   type CollectionType,
 } from './collection';
+import { normalizePhotoOrder } from '../photos/photo-order';
 
 import type { CollectionRepository } from './collection-ports';
 
@@ -20,6 +21,10 @@ export interface CollectionService {
     ownerId: string,
     input: CollectionProfileInput,
   ): Promise<CollectionProfileInput>;
+  savePhotoOrder(
+    ownerId: string,
+    photoOrder: readonly number[],
+  ): Promise<void>;
 }
 
 export interface CollectionServiceDependencies {
@@ -74,6 +79,20 @@ export function createCollectionService({
       const normalized = validateCollectionInput(input);
       await repository.saveCollection(ownerId, normalized);
       return normalized;
+    },
+
+    async savePhotoOrder(ownerId, photoOrder) {
+      if (!ownerId) {
+        throw new Error('authentication-required');
+      }
+
+      const normalized = normalizePhotoOrder(photoOrder);
+
+      if (normalized.length !== photoOrder.length) {
+        throw new Error('invalid-photo-order');
+      }
+
+      await repository.savePhotoOrder(ownerId, normalized);
     },
   };
 }

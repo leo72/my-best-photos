@@ -18,7 +18,10 @@ import {
   MAX_PHOTO_PROCESSING_ATTEMPTS,
   PROCESSING_STALL_TIMEOUT_MS,
 } from '../src/photos/processing-decision.js';
-import { canDeleteOwnerPhotoStatus } from '../src/photos/delete-photo-decision.js';
+import {
+  canDeleteOwnerPhotoStatus,
+  isSlotInPhotoOrder,
+} from '../src/photos/delete-photo-decision.js';
 import { findAvailableSlot } from '../src/photos/slot-allocation.js';
 import {
   InvalidPhotoInputError,
@@ -235,6 +238,19 @@ describe('canDeleteOwnerPhotoStatus', () => {
     expect(canDeleteOwnerPhotoStatus('failed')).toBe(true);
     expect(canDeleteOwnerPhotoStatus('reserved')).toBe(false);
     expect(canDeleteOwnerPhotoStatus('processing')).toBe(false);
+  });
+});
+
+describe('isSlotInPhotoOrder', () => {
+  it('finds a slot in the saved order', () => {
+    expect(isSlotInPhotoOrder({ photoOrder: [3, 1] }, 1)).toBe(true);
+    expect(isSlotInPhotoOrder({ photoOrder: [3, 1] }, 2)).toBe(false);
+  });
+
+  it('handles profiles without an order', () => {
+    expect(isSlotInPhotoOrder({ title: 'My 10 Photos' }, 1)).toBe(false);
+    expect(isSlotInPhotoOrder({ photoOrder: 'x' }, 1)).toBe(false);
+    expect(isSlotInPhotoOrder(undefined, 1)).toBe(false);
   });
 });
 

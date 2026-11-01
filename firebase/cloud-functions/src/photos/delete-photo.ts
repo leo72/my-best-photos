@@ -1,3 +1,4 @@
+import { FieldValue } from 'firebase-admin/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 
@@ -9,7 +10,10 @@ import {
   MAX_PHOTO_SLOTS,
 } from './photo-contract.js';
 import { deletePhotoFiles } from './photo-storage.js';
-import { canDeleteOwnerPhotoStatus } from './delete-photo-decision.js';
+import {
+  canDeleteOwnerPhotoStatus,
+  isSlotInPhotoOrder,
+} from './delete-photo-decision.js';
 
 interface DeletePhotoInput {
   slot: number;
@@ -56,28 +60,41 @@ export const deletePhoto = onCall(
     const publicRef = adminDb.doc(
       `publicPhotos/${getPublicPhotoId(ownerId, input.slot)}`,
     );
+    const profileRef = adminDb.doc(`users/${ownerId}`);
 
     const deletion = await adminDb.runTransaction(
       async (transaction) => {
-        const snapshot = await transaction.get(privateRef);
+        const [snapshot, profileSnapshot] = await Promise.all([
+          transaction.get(privateRef),
+          transaction.get(profileRef),
+        ]);
         const data: unknown = snapshot.data();
 
-        if (!snapshot.exists) {
-          transaction.delete(publicRef);
-          return 'missing';
-        }
-
         if (
-          typeof data !== 'object'
-          || data === null
-          || !('status' in data)
-          || !canDeleteOwnerPhotoStatus(data.status)
+          snapshot.exists
+          && (
+            typeof data !== 'object'
+            || data === null
+            || !('status' in data)
+            || !canDeleteOwnerPhotoStatus(data.status)
+          )
         ) {
           return 'blocked';
         }
 
-        transaction.delete(privateRef);
+        if (isSlotInPhotoOrder(profileSnapshot.data(), input.slot)) {
+          transaction.update(profileRef, {
+            photoOrder: FieldValue.arrayRemove(input.slot),
+          });
+        }
+
         transaction.delete(publicRef);
+
+        if (!snapshot.exists) {
+          return 'missing';
+        }
+
+        transaction.delete(privateRef);
         return 'deleted';
       },
     );

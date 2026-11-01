@@ -11,6 +11,7 @@ import {
   normalizeCollectionType,
 } from '../../src/features/collection/collection';
 import {
+  createCollectionService,
   titleForCollectionTypeChange,
   validateCollectionInput,
 } from '../../src/features/collection/collection-service';
@@ -58,6 +59,48 @@ describe('validateCollectionInput', () => {
   });
 });
 
+describe('savePhotoOrder', () => {
+  function serviceWithSavedOrders() {
+    const savedOrders: (readonly number[])[] = [];
+    const service = createCollectionService({
+      repository: {
+        subscribeToCollection: () => () => undefined,
+        saveCollection: async () => undefined,
+        savePhotoOrder: async (_ownerId, photoOrder) => {
+          savedOrders.push(photoOrder);
+        },
+      },
+    });
+
+    return { service, savedOrders };
+  }
+
+  it('saves a valid order', async () => {
+    const { service, savedOrders } = serviceWithSavedOrders();
+
+    await service.savePhotoOrder('owner', [3, 1, 2]);
+
+    expect(savedOrders).toEqual([[3, 1, 2]]);
+  });
+
+  it('rejects invalid or repeated slots', async () => {
+    const { service, savedOrders } = serviceWithSavedOrders();
+
+    await expect(service.savePhotoOrder('owner', [1, 1]))
+      .rejects.toThrow('invalid-photo-order');
+    await expect(service.savePhotoOrder('owner', [0, 2]))
+      .rejects.toThrow('invalid-photo-order');
+    expect(savedOrders).toEqual([]);
+  });
+
+  it('requires an owner', async () => {
+    const { service } = serviceWithSavedOrders();
+
+    await expect(service.savePhotoOrder('', [1]))
+      .rejects.toThrow('authentication-required');
+  });
+});
+
 describe('titleForCollectionTypeChange', () => {
   it('replaces default titles when purpose changes', () => {
     expect(titleForCollectionTypeChange(
@@ -85,9 +128,18 @@ describe('decodeCollectionProfile', () => {
       ownerId: 'owner',
       collectionType: 'profile',
       title: 'My Profile Photos',
+      photoOrder: [],
       createdAt: null,
       updatedAt: null,
     });
+  });
+
+  it('decodes the photo order, dropping invalid slots', () => {
+    expect(decodeCollectionProfile('owner', {
+      collectionType: 'profile',
+      title: 'My Profile Photos',
+      photoOrder: [4, 2, 11, 4, 'x', 1],
+    })?.photoOrder).toEqual([4, 2, 1]);
   });
 
   it('maps legacy collection types', () => {
@@ -99,6 +151,7 @@ describe('decodeCollectionProfile', () => {
       ownerId: 'owner',
       collectionType: 'collection',
       title: 'My 10 Photos',
+      photoOrder: [],
       createdAt: null,
       updatedAt: null,
     });

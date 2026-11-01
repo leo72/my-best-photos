@@ -233,6 +233,44 @@ describe('Firestore rules', () => {
     );
   });
 
+  it('accepts a photo order of distinct slots only', async () => {
+    const now = Timestamp.now();
+    const ownerDoc = doc(
+      authContext('owner').firestore(),
+      'users/owner',
+    );
+    const payload = {
+      ownerId: 'owner',
+      collectionType: 'collection',
+      title: 'My 10 Photos',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await assertSucceeds(
+      setDoc(ownerDoc, { ...payload, photoOrder: [] }),
+    );
+    await assertSucceeds(
+      setDoc(ownerDoc, {
+        ...payload,
+        photoOrder: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+      }),
+    );
+
+    for (const photoOrder of [
+      [0],
+      [11],
+      [1, 1],
+      ['1'],
+      [1.5],
+      'not-a-list',
+    ]) {
+      await assertFails(
+        setDoc(ownerDoc, { ...payload, photoOrder }),
+      );
+    }
+  });
+
   it('accepts titles up to the client limit and no longer', async () => {
     const now = Timestamp.now();
     const ownerDoc = doc(

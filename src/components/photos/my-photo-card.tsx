@@ -3,6 +3,8 @@ import {
   EllipsisHorizontalIcon,
   LinkIcon,
 } from '@heroicons/react/24/outline';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useId, useState } from 'react';
 
 import { useAppServices } from '../../app/providers';
@@ -20,9 +22,28 @@ import type { GalleryPhoto } from '../../features/photos/photo';
 
 interface MyPhotoCardProps {
   photo: GalleryPhoto;
+  /** Makes the photo a drag handle; needs a surrounding SortableContext. */
+  canReorder: boolean;
+  isReorderDisabled: boolean;
 }
 
-export function MyPhotoCard({ photo }: MyPhotoCardProps) {
+export function MyPhotoCard({
+  photo,
+  canReorder,
+  isReorderDisabled,
+}: MyPhotoCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: photo.id,
+    disabled: !canReorder || isReorderDisabled,
+  });
   const { photoService } = useAppServices();
   const menuId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -73,19 +94,53 @@ export function MyPhotoCard({ photo }: MyPhotoCardProps) {
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <article
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Translate.toString(transform),
+        transition,
+      }}
+      className={[
+        'overflow-hidden rounded-2xl border border-slate-200 bg-white',
+        isDragging
+          ? 'relative z-20 shadow-xl ring-2 ring-blue-400'
+          : 'shadow-sm',
+      ].join(' ')}
+    >
       <div className="relative bg-slate-100">
-        <img
-          src={photo.thumbnailUrl}
-          srcSet={getPhotoSrcSet(photo)}
-          sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
-          alt={title}
-          loading="lazy"
-          decoding="async"
-          width={photo.width}
-          height={photo.height}
-          className="aspect-[4/3] h-auto w-full object-cover"
-        />
+        {/* The photo is the drag handle; iOS would otherwise open its
+            image menu on the long press that starts a touch drag. */}
+        <div
+          ref={setActivatorNodeRef}
+          {...(canReorder
+            ? {
+                ...attributes,
+                ...listeners,
+                'aria-label': `Reorder ${title}`,
+              }
+            : {})}
+          className={[
+            'touch-manipulation select-none [-webkit-touch-callout:none] focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-blue-500',
+            canReorder
+              ? isDragging
+                ? 'cursor-grabbing'
+                : 'cursor-grab'
+              : '',
+          ].join(' ')}
+        >
+          <img
+            src={photo.thumbnailUrl}
+            srcSet={getPhotoSrcSet(photo)}
+            sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+            alt={title}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            width={photo.width}
+            height={photo.height}
+            className="aspect-[4/3] h-auto w-full object-cover"
+          />
+        </div>
 
         <div className="absolute top-3 right-3">
           <button

@@ -16,6 +16,7 @@ import {
   getCollectionLook,
 } from '../features/collection/collection';
 import { useCollection } from '../features/collection/use-collection';
+import { sortPhotosByOrder } from '../features/photos/photo-order';
 import {
   getPublicPageUrl,
 } from '../features/photos/public-page-path';
@@ -73,7 +74,10 @@ function PublicPageContent({ ownerId }: { ownerId: string }) {
   }
 
   const { profile } = collection;
-  const photos = pagePhotos.photos;
+  const photos = sortPhotosByOrder(
+    pagePhotos.photos,
+    profile.photoOrder,
+  );
   const look = getCollectionLook(profile.collectionType);
 
   if (photos.length === 0) {
