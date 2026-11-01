@@ -339,12 +339,66 @@ describe('createPhotoService', () => {
           },
         ],
         pendingCount: 1,
-        failedCount: 0,
+        failedPhotos: [],
       });
     });
 
     dispose();
     expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it('reports failed owner photos without counting them', async () => {
+    const failedPhoto: OwnerPhoto = {
+      id: '3',
+      ownerId: 'owner',
+      slot: 3,
+      sourceGeneration: '7',
+      status: 'failed',
+      originalFileName: 'beach.jpg',
+      width: null,
+      height: null,
+      errorCode: 'processing-failed',
+      createdAt: new Date(1_000),
+      updatedAt: new Date(3_000),
+      reservationExpiresAt: null,
+    };
+    const repository: PhotoRepository = {
+      subscribeToPublicPhotos(onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+      subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+      subscribeToOwnerPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([failedPhoto]);
+        return () => undefined;
+      },
+    };
+    const service = createPhotoService({
+      authSession: createAuthSession('owner'),
+      repository,
+      uploadGateway: new FakePhotoUploadGateway(),
+    });
+    const onPhotos = vi.fn();
+
+    service.subscribeToMyPhotos(onPhotos, vi.fn());
+
+    await vi.waitFor(() => {
+      expect(onPhotos).toHaveBeenCalledWith({
+        readyPhotos: [],
+        pendingCount: 0,
+        failedPhotos: [
+          {
+            id: '3',
+            slot: 3,
+            originalFileName: 'beach.jpg',
+            updatedAt: new Date(3_000),
+          },
+        ],
+      });
+    });
   });
 
   it('publishes an owner public page without auth', async () => {

@@ -1,6 +1,7 @@
 import { CollectionSettingsPanel } from '../components/collection/collection-settings-panel';
 import { MyPhotosEmptyState } from '../components/photos/my-photos-empty-state';
 import { MyPhotosEmptySteps } from '../components/photos/my-photos-empty-steps';
+import { MyPhotosFailedNotice } from '../components/photos/my-photos-failed-notice';
 import { MyPhotosFilledState } from '../components/photos/my-photos-filled-state';
 import { MyPhotosProcessingState } from '../components/photos/my-photos-processing-state';
 import { Container } from '../components/layout/container';
@@ -53,7 +54,8 @@ function MyPhotosContent() {
     );
   }
 
-  const { readyPhotos, pendingCount } = myPhotos.snapshot;
+  const { readyPhotos, pendingCount, failedPhotos } =
+    myPhotos.snapshot;
 
   return (
     <div className="grid gap-6">
@@ -72,6 +74,12 @@ function MyPhotosContent() {
         onChange={(event) => {
           void upload.uploadFiles(event.target.files);
         }}
+      />
+
+      <MyPhotosFailedNotice
+        key={user.id}
+        ownerId={user.id}
+        photos={failedPhotos}
       />
 
       {readyPhotos.length > 0 ? (

@@ -50,10 +50,15 @@ export interface GalleryPhoto extends PublicPhoto {
   originalFileName: string | null;
 }
 
+export type FailedPhoto = Pick<
+  OwnerPhoto,
+  'id' | 'slot' | 'originalFileName' | 'updatedAt'
+>;
+
 export interface MyPhotosSnapshot {
   readyPhotos: GalleryPhoto[];
   pendingCount: number;
-  failedCount: number;
+  failedPhotos: FailedPhoto[];
 }
 
 export interface UploadPhotoResult {

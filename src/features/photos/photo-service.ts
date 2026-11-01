@@ -255,9 +255,14 @@ export function createPhotoService({
         (photos) => {
           const currentVersion = ++snapshotVersion;
           const nowMs = Date.now();
-          const failedCount = photos.filter(
-            (photo) => photo.status === 'failed',
-          ).length;
+          const failedPhotos = photos
+            .filter((photo) => photo.status === 'failed')
+            .map(({ id, slot, originalFileName, updatedAt }) => ({
+              id,
+              slot,
+              originalFileName,
+              updatedAt,
+            }));
           const activePhotos = photos.filter((photo) =>
             isActiveOwnerPhoto(photo, nowMs),
           );
@@ -298,7 +303,7 @@ export function createPhotoService({
               onPhotos({
                 readyPhotos,
                 pendingCount,
-                failedCount,
+                failedPhotos,
               });
             },
             (error: unknown) => {
