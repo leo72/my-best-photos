@@ -4,9 +4,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
-import {
-  getCollectionSubtitle,
-} from '../../features/collection/collection';
 import { getPhotoSrcSet } from '../../features/photos/photo-image';
 
 import type { CollectionProfile } from '../../features/collection/collection';
@@ -23,7 +20,6 @@ export function CinematicPublicLayout({
 }: PublicCollectionLayoutProps) {
   const [index, setIndex] = useState(0);
   const photo = photos[index] ?? null;
-  const subtitle = getCollectionSubtitle(profile.collectionType);
 
   if (!photo) {
     return null;
@@ -77,9 +73,11 @@ export function CinematicPublicLayout({
           <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
             {profile.title}
           </h1>
-          <p className="mt-3 text-base text-white/80 sm:text-lg">
-            {subtitle}
-          </p>
+          {profile.subtitle ? (
+            <p className="mt-3 text-base text-white/80 sm:text-lg">
+              {profile.subtitle}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex items-center justify-between gap-4">
@@ -141,17 +139,17 @@ export function GalleryPublicLayout({
   profile,
   photos,
 }: PublicCollectionLayoutProps) {
-  const subtitle = getCollectionSubtitle(profile.collectionType);
-
   return (
     <div className="grid gap-8">
       <header className="text-center">
         <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
           {profile.title}
         </h1>
-        <p className="mt-2 text-sm text-slate-500 sm:text-base">
-          {subtitle}
-        </p>
+        {profile.subtitle ? (
+          <p className="mt-2 text-sm text-slate-500 sm:text-base">
+            {profile.subtitle}
+          </p>
+        ) : null}
       </header>
 
       <div className="columns-1 gap-3 sm:columns-2 lg:columns-3">
@@ -189,17 +187,17 @@ export function CleanPublicLayout({
   profile,
   photos,
 }: PublicCollectionLayoutProps) {
-  const subtitle = getCollectionSubtitle(profile.collectionType);
-
   return (
     <div className="grid gap-8">
       <header>
         <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
           {profile.title}
         </h1>
-        <p className="mt-2 text-sm text-slate-500 sm:text-base">
-          {subtitle}
-        </p>
+        {profile.subtitle ? (
+          <p className="mt-2 text-sm text-slate-500 sm:text-base">
+            {profile.subtitle}
+          </p>
+        ) : null}
       </header>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">

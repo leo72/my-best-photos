@@ -1,6 +1,8 @@
 import { Timestamp } from 'firebase/firestore';
 
 import {
+  getDefaultCollectionSubtitle,
+  normalizeCollectionSubtitle,
   normalizeCollectionTitle,
   normalizeCollectionType,
   type CollectionProfile,
@@ -38,6 +40,10 @@ export function decodeCollectionProfile(
     ownerId,
     collectionType,
     title,
+    // Pages saved before subtitles existed keep their style's line.
+    subtitle: 'subtitle' in value && typeof value.subtitle === 'string'
+      ? normalizeCollectionSubtitle(value.subtitle)
+      : getDefaultCollectionSubtitle(collectionType),
     photoOrder:
       'photoOrder' in value ? normalizePhotoOrder(value.photoOrder) : [],
     createdAt:

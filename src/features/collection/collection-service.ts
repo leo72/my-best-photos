@@ -1,7 +1,9 @@
 import {
   createDefaultCollectionProfile,
+  getDefaultCollectionSubtitle,
   getDefaultCollectionTitle,
   isCollectionType,
+  normalizeCollectionSubtitle,
   normalizeCollectionTitle,
   type CollectionProfile,
   type CollectionProfileInput,
@@ -47,6 +49,7 @@ export function validateCollectionInput(
   return {
     collectionType: input.collectionType,
     title,
+    subtitle: normalizeCollectionSubtitle(input.subtitle),
   };
 }
 
@@ -112,4 +115,20 @@ export function titleForCollectionTypeChange(
   }
 
   return currentTitle;
+}
+
+/** Like the title, but an empty subtitle stays empty (hidden). */
+export function subtitleForCollectionTypeChange(
+  nextType: CollectionType,
+  currentSubtitle: string,
+  previousType: CollectionType,
+): string {
+  if (
+    normalizeCollectionSubtitle(currentSubtitle)
+    === getDefaultCollectionSubtitle(previousType)
+  ) {
+    return getDefaultCollectionSubtitle(nextType);
+  }
+
+  return currentSubtitle;
 }

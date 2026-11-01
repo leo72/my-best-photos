@@ -25,7 +25,10 @@ import {
   it,
 } from 'vitest';
 
-import { MAX_COLLECTION_TITLE_LENGTH } from '../../src/features/collection/collection';
+import {
+  MAX_COLLECTION_SUBTITLE_LENGTH,
+  MAX_COLLECTION_TITLE_LENGTH,
+} from '../../src/features/collection/collection';
 
 const projectId = 'my-best-photos-v1';
 const validFile = new Uint8Array([1, 2, 3]);
@@ -230,6 +233,40 @@ describe('Firestore rules', () => {
           ownerId: 'other',
         },
       ),
+    );
+  });
+
+  it('accepts subtitles up to the client limit and no longer', async () => {
+    const now = Timestamp.now();
+    const ownerDoc = doc(
+      authContext('owner').firestore(),
+      'users/owner',
+    );
+    const payload = {
+      ownerId: 'owner',
+      collectionType: 'collection',
+      title: 'My 10 Photos',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await assertSucceeds(
+      setDoc(ownerDoc, { ...payload, subtitle: '' }),
+    );
+    await assertSucceeds(
+      setDoc(ownerDoc, {
+        ...payload,
+        subtitle: 'a'.repeat(MAX_COLLECTION_SUBTITLE_LENGTH),
+      }),
+    );
+    await assertFails(
+      setDoc(ownerDoc, {
+        ...payload,
+        subtitle: 'a'.repeat(MAX_COLLECTION_SUBTITLE_LENGTH + 1),
+      }),
+    );
+    await assertFails(
+      setDoc(ownerDoc, { ...payload, subtitle: 42 }),
     );
   });
 

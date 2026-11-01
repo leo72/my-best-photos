@@ -1,5 +1,7 @@
 export const MAX_COLLECTION_TITLE_LENGTH = 128;
 
+export const MAX_COLLECTION_SUBTITLE_LENGTH = 120;
+
 export const COLLECTION_TYPES = [
   'year',
   'collection',
@@ -14,6 +16,11 @@ export interface CollectionProfile {
   ownerId: string;
   collectionType: CollectionType;
   title: string;
+  /**
+   * The style's default line until the owner edits it; empty hides
+   * the subtitle.
+   */
+  subtitle: string;
   /** Photo slots in display order; slots not listed come first. */
   photoOrder: readonly number[];
   createdAt: Date | null;
@@ -23,6 +30,7 @@ export interface CollectionProfile {
 export interface CollectionProfileInput {
   collectionType: CollectionType;
   title: string;
+  subtitle: string;
 }
 
 const LEGACY_COLLECTION_TYPES = new Set([
@@ -65,7 +73,7 @@ export function getCollectionLook(
   }
 }
 
-export function getCollectionSubtitle(
+export function getDefaultCollectionSubtitle(
   collectionType: CollectionType,
 ): string {
   switch (collectionType) {
@@ -98,6 +106,7 @@ export function createDefaultCollectionProfile(
     ownerId,
     collectionType: 'collection',
     title: getDefaultCollectionTitle('collection'),
+    subtitle: getDefaultCollectionSubtitle('collection'),
     photoOrder: [],
     createdAt: null,
     updatedAt: null,
@@ -106,6 +115,10 @@ export function createDefaultCollectionProfile(
 
 export function normalizeCollectionTitle(title: string): string {
   return title.trim().slice(0, MAX_COLLECTION_TITLE_LENGTH);
+}
+
+export function normalizeCollectionSubtitle(subtitle: string): string {
+  return subtitle.trim().slice(0, MAX_COLLECTION_SUBTITLE_LENGTH);
 }
 
 export function getCollectionPath(ownerId: string): string {

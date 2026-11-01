@@ -31,6 +31,7 @@ service cloud.firestore {
           'ownerId',
           'collectionType',
           'title',
+          'subtitle',
           'photoOrder',
           'createdAt',
           'updatedAt',
@@ -41,6 +42,14 @@ service cloud.firestore {
         && request.resource.data.title.size() > 0
         // Keep in sync with MAX_COLLECTION_TITLE_LENGTH.
         && request.resource.data.title.size() <= 128
+        && (
+          !('subtitle' in request.resource.data)
+          || (
+            request.resource.data.subtitle is string
+            // Keep in sync with MAX_COLLECTION_SUBTITLE_LENGTH.
+            && request.resource.data.subtitle.size() <= 120
+          )
+        )
         && request.resource.data.updatedAt is timestamp
         && (
           !('photoOrder' in request.resource.data)

@@ -56,6 +56,7 @@ export function createFirebaseCollectionRepository(): CollectionRepository {
         ownerId,
         collectionType: input.collectionType,
         title: input.title,
+        subtitle: input.subtitle,
         updatedAt: serverTimestamp(),
         year: deleteField(),
       };
@@ -69,6 +70,7 @@ export function createFirebaseCollectionRepository(): CollectionRepository {
         ownerId,
         collectionType: input.collectionType,
         title: input.title,
+        subtitle: input.subtitle,
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
       });

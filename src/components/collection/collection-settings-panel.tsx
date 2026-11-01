@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import {
+  MAX_COLLECTION_SUBTITLE_LENGTH,
   MAX_COLLECTION_TITLE_LENGTH,
   type CollectionProfile,
+  type CollectionProfileInput,
   type CollectionType,
 } from '../../features/collection/collection';
 import {
   COLLECTION_TYPE_OPTIONS,
 } from '../../features/collection/collection-options';
 import {
+  subtitleForCollectionTypeChange,
   titleForCollectionTypeChange,
 } from '../../features/collection/collection-service';
 import {
@@ -26,20 +29,20 @@ export function CollectionSettingsPanel({
 }: CollectionSettingsPanelProps) {
   const { isSaving, errorMessage, saveCollection } =
     useSaveCollection(ownerId);
+  const subtitleHintId = useId();
   const [collectionType, setCollectionType] =
     useState<CollectionType>(profile.collectionType);
   const [title, setTitle] = useState(profile.title);
+  const [subtitle, setSubtitle] = useState(profile.subtitle);
   const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     setCollectionType(profile.collectionType);
     setTitle(profile.title);
+    setSubtitle(profile.subtitle);
   }, [profile]);
 
-  async function persist(next: {
-    collectionType: CollectionType;
-    title: string;
-  }): Promise<void> {
+  async function persist(next: CollectionProfileInput): Promise<void> {
     const saved = await saveCollection(next);
 
     if (saved) {
@@ -56,12 +59,19 @@ export function CollectionSettingsPanel({
       title,
       collectionType,
     );
+    const nextSubtitle = subtitleForCollectionTypeChange(
+      nextType,
+      subtitle,
+      collectionType,
+    );
 
     setCollectionType(nextType);
     setTitle(nextTitle);
+    setSubtitle(nextSubtitle);
     void persist({
       collectionType: nextType,
       title: nextTitle,
+      subtitle: nextSubtitle,
     });
   }
 
@@ -137,6 +147,7 @@ export function CollectionSettingsPanel({
                 void persist({
                   collectionType,
                   title,
+                  subtitle,
                 });
               }}
             />
@@ -144,6 +155,40 @@ export function CollectionSettingsPanel({
               {title.trim().length}/{MAX_COLLECTION_TITLE_LENGTH}
             </span>
           </div>
+        </label>
+
+        <label className="mt-4 grid gap-2 text-sm font-medium text-slate-950">
+          Subtitle
+          <div className="relative">
+            <input
+              type="text"
+              value={subtitle}
+              maxLength={MAX_COLLECTION_SUBTITLE_LENGTH}
+              disabled={isSaving}
+              aria-describedby={subtitleHintId}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 pr-16 text-sm font-normal text-slate-950 focus:outline-2 focus:outline-offset-1 focus:outline-blue-300"
+              onChange={(event) => {
+                setSubtitle(event.target.value);
+              }}
+              onBlur={() => {
+                void persist({
+                  collectionType,
+                  title,
+                  subtitle,
+                });
+              }}
+            />
+            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-slate-400">
+              {subtitle.trim().length}/{MAX_COLLECTION_SUBTITLE_LENGTH}
+            </span>
+          </div>
+          <span
+            id={subtitleHintId}
+            className="text-xs font-normal text-slate-500"
+          >
+            Shown under the title. Leave it empty to show no
+            subtitle.
+          </span>
         </label>
 
         {(statusMessage || errorMessage) ? (

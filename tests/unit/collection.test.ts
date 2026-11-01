@@ -7,11 +7,14 @@ import {
 import {
   createDefaultCollectionProfile,
   getCollectionLook,
+  getDefaultCollectionSubtitle,
   getDefaultCollectionTitle,
+  MAX_COLLECTION_SUBTITLE_LENGTH,
   normalizeCollectionType,
 } from '../../src/features/collection/collection';
 import {
   createCollectionService,
+  subtitleForCollectionTypeChange,
   titleForCollectionTypeChange,
   validateCollectionInput,
 } from '../../src/features/collection/collection-service';
@@ -29,6 +32,7 @@ describe('collection defaults', () => {
       ownerId: 'owner',
       collectionType: 'collection',
       title: 'My 10 Photos',
+      subtitle: 'Moments I love, all in one place.',
     });
   });
 
@@ -41,20 +45,36 @@ describe('collection defaults', () => {
 });
 
 describe('validateCollectionInput', () => {
-  it('normalizes title', () => {
+  it('normalizes title and subtitle', () => {
     expect(validateCollectionInput({
       collectionType: 'year',
       title: '  My year  ',
+      subtitle: '  Best moments  ',
     })).toEqual({
       collectionType: 'year',
       title: 'My year',
+      subtitle: 'Best moments',
     });
+  });
+
+  it('keeps an empty subtitle and trims long ones', () => {
+    expect(validateCollectionInput({
+      collectionType: 'year',
+      title: 'My year',
+      subtitle: '   ',
+    }).subtitle).toBe('');
+    expect(validateCollectionInput({
+      collectionType: 'year',
+      title: 'My year',
+      subtitle: 'a'.repeat(MAX_COLLECTION_SUBTITLE_LENGTH + 5),
+    }).subtitle).toHaveLength(MAX_COLLECTION_SUBTITLE_LENGTH);
   });
 
   it('rejects an empty title', () => {
     expect(() => validateCollectionInput({
       collectionType: 'collection',
       title: '   ',
+      subtitle: '',
     })).toThrow('empty-collection-title');
   });
 });
@@ -119,6 +139,32 @@ describe('titleForCollectionTypeChange', () => {
   });
 });
 
+describe('subtitleForCollectionTypeChange', () => {
+  it('follows the style while the default is unedited', () => {
+    expect(subtitleForCollectionTypeChange(
+      'year',
+      getDefaultCollectionSubtitle('collection'),
+      'collection',
+    )).toBe('Ten photos. One year.');
+  });
+
+  it('keeps a custom subtitle', () => {
+    expect(subtitleForCollectionTypeChange(
+      'profile',
+      'Street photos from Yerevan',
+      'year',
+    )).toBe('Street photos from Yerevan');
+  });
+
+  it('keeps a cleared subtitle hidden', () => {
+    expect(subtitleForCollectionTypeChange(
+      'profile',
+      '',
+      'collection',
+    )).toBe('');
+  });
+});
+
 describe('decodeCollectionProfile', () => {
   it('decodes a valid profile', () => {
     expect(decodeCollectionProfile('owner', {
@@ -128,10 +174,31 @@ describe('decodeCollectionProfile', () => {
       ownerId: 'owner',
       collectionType: 'profile',
       title: 'My Profile Photos',
+      subtitle: 'A selection of photos that represent me.',
       photoOrder: [],
       createdAt: null,
       updatedAt: null,
     });
+  });
+
+  it('decodes a saved subtitle, including an empty one', () => {
+    const profile = {
+      collectionType: 'profile',
+      title: 'My Profile Photos',
+    };
+
+    expect(decodeCollectionProfile('owner', {
+      ...profile,
+      subtitle: '  Portraits and travel  ',
+    })?.subtitle).toBe('Portraits and travel');
+    expect(decodeCollectionProfile('owner', {
+      ...profile,
+      subtitle: '',
+    })?.subtitle).toBe('');
+    expect(decodeCollectionProfile('owner', {
+      ...profile,
+      subtitle: 42,
+    })?.subtitle).toBe('A selection of photos that represent me.');
   });
 
   it('decodes the photo order, dropping invalid slots', () => {
@@ -151,6 +218,7 @@ describe('decodeCollectionProfile', () => {
       ownerId: 'owner',
       collectionType: 'collection',
       title: 'My 10 Photos',
+      subtitle: 'Moments I love, all in one place.',
       photoOrder: [],
       createdAt: null,
       updatedAt: null,
