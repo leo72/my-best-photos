@@ -29,6 +29,43 @@ const reservation: PhotoReservation = {
   reservationId: 'reservation',
 };
 
+function publicRecord(
+  slot: number,
+  sourceGeneration: string | null,
+): PublicPhoto {
+  return {
+    id: `owner_${slot}`,
+    ownerId: 'owner',
+    slot,
+    sourceGeneration,
+    status: 'ready',
+    width: 1200,
+    height: 800,
+    createdAt: null,
+    updatedAt: null,
+  };
+}
+
+function ownerReadyPhoto(
+  slot: number,
+  sourceGeneration: string,
+): OwnerPhoto {
+  return {
+    id: String(slot),
+    ownerId: 'owner',
+    slot,
+    sourceGeneration,
+    status: 'ready',
+    originalFileName: null,
+    width: 1200,
+    height: 800,
+    errorCode: null,
+    createdAt: null,
+    updatedAt: null,
+    reservationExpiresAt: null,
+  };
+}
+
 class FakePhotoRepository implements PhotoRepository {
   public subscribeToPublicPhotos(
     onPhotos: (photos: PublicPhoto[]) => void,
@@ -264,6 +301,7 @@ describe('createPhotoService', () => {
 
   it('publishes owner ready photos and pending counts', async () => {
     const unsubscribe = vi.fn();
+    const unsubscribePublic = vi.fn();
     const readyPhoto: OwnerPhoto = {
       id: '1',
       ownerId: 'owner',
@@ -298,8 +336,8 @@ describe('createPhotoService', () => {
         return () => undefined;
       },
       subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
-        onPhotos([]);
-        return () => undefined;
+        onPhotos([publicRecord(1, '42')]);
+        return unsubscribePublic;
       },
       subscribeToOwnerPhotos(_ownerId, onPhotos): () => void {
         onPhotos([readyPhoto, pendingPhoto]);
@@ -345,6 +383,52 @@ describe('createPhotoService', () => {
 
     dispose();
     expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(unsubscribePublic).toHaveBeenCalledOnce();
+  });
+
+  it('takes derivative paths from the public record', async () => {
+    // Photos processed before versioned paths: the private record has
+    // a generation, but the files are at the unversioned path.
+    const legacyPhoto = ownerReadyPhoto(1, '42');
+    const unpublishedPhoto = ownerReadyPhoto(2, '43');
+    const repository: PhotoRepository = {
+      subscribeToPublicPhotos(onPhotos): () => void {
+        onPhotos([]);
+        return () => undefined;
+      },
+      subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([publicRecord(1, null)]);
+        return () => undefined;
+      },
+      subscribeToOwnerPhotos(_ownerId, onPhotos): () => void {
+        onPhotos([legacyPhoto, unpublishedPhoto]);
+        return () => undefined;
+      },
+    };
+    const service = createPhotoService({
+      authSession: createAuthSession('owner'),
+      repository,
+      uploadGateway: new FakePhotoUploadGateway(),
+    });
+    const onPhotos = vi.fn();
+
+    service.subscribeToMyPhotos(onPhotos, vi.fn());
+
+    await vi.waitFor(() => {
+      expect(onPhotos).toHaveBeenCalledWith({
+        readyPhotos: [
+          expect.objectContaining({
+            slot: 1,
+            sourceGeneration: null,
+            thumbnailUrl:
+              'https://example.test/owner/1/null/thumbnail.webp',
+          }),
+        ],
+        // Ready but its public record hasn't arrived yet.
+        pendingCount: 1,
+        failedPhotos: [],
+      });
+    });
   });
 
   it('reports failed owner photos without counting them', async () => {

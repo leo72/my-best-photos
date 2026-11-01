@@ -54,8 +54,14 @@ export function validatePhotoFile(file: File): void {
   }
 }
 
+/**
+ * `derivativeGeneration` comes from the public record: photos processed
+ * before versioned paths have a generation in their private record but
+ * their files at the unversioned path.
+ */
 async function toGalleryPhoto(
   photo: OwnerPhoto,
+  derivativeGeneration: string | null,
   uploadGateway: PhotoUploadGateway,
 ): Promise<GalleryPhoto | null> {
   if (
@@ -70,13 +76,13 @@ async function toGalleryPhoto(
     uploadGateway.getDerivativeUrl(
       photo.ownerId,
       photo.slot,
-      photo.sourceGeneration,
+      derivativeGeneration,
       'thumbnail.webp',
     ),
     uploadGateway.getDerivativeUrl(
       photo.ownerId,
       photo.slot,
-      photo.sourceGeneration,
+      derivativeGeneration,
       'optimized.webp',
     ),
   ]);
@@ -85,7 +91,7 @@ async function toGalleryPhoto(
     id: `${photo.ownerId}_${photo.slot}`,
     ownerId: photo.ownerId,
     slot: photo.slot,
-    sourceGeneration: photo.sourceGeneration,
+    sourceGeneration: derivativeGeneration,
     status: 'ready',
     width: photo.width,
     height: photo.height,
@@ -249,76 +255,113 @@ export function createPhotoService({
 
       let isActive = true;
       let snapshotVersion = 0;
+      let ownerPhotos: OwnerPhoto[] | null = null;
+      let publicGenerations: Map<number, string | null> | null =
+        null;
 
-      const unsubscribe = repository.subscribeToOwnerPhotos(
+      function publish(): void {
+        if (!ownerPhotos || !publicGenerations) {
+          return;
+        }
+
+        const photos = ownerPhotos;
+        const generations = publicGenerations;
+        const currentVersion = ++snapshotVersion;
+        const nowMs = Date.now();
+        const failedPhotos = photos
+          .filter((photo) => photo.status === 'failed')
+          .map(({ id, slot, originalFileName, updatedAt }) => ({
+            id,
+            slot,
+            originalFileName,
+            updatedAt,
+          }));
+        const activePhotos = photos.filter((photo) =>
+          isActiveOwnerPhoto(photo, nowMs),
+        );
+        // Both records are written in one transaction, so a ready photo
+        // without its public record is only a snapshot behind.
+        const isPublished = (photo: OwnerPhoto): boolean =>
+          photo.status === 'ready' && generations.has(photo.slot);
+        const pendingCount = activePhotos.filter(
+          (photo) =>
+            photo.status === 'reserved'
+            || photo.status === 'processing'
+            || (photo.status === 'ready' && !isPublished(photo)),
+        ).length;
+        const readyOwnerPhotos = activePhotos.filter(isPublished);
+
+        void Promise.all(
+          readyOwnerPhotos.map((photo) =>
+            toGalleryPhoto(
+              photo,
+              generations.get(photo.slot) ?? null,
+              uploadGateway,
+            ),
+          ),
+        ).then(
+          (resolvedPhotos) => {
+            if (
+              !isActive
+              || currentVersion !== snapshotVersion
+            ) {
+              return;
+            }
+
+            const readyPhotos = resolvedPhotos
+              .filter((photo): photo is GalleryPhoto =>
+                photo !== null,
+              )
+              .sort((left, right) => {
+                const leftTime =
+                  left.updatedAt?.getTime() ?? 0;
+                const rightTime =
+                  right.updatedAt?.getTime() ?? 0;
+                return rightTime - leftTime;
+              });
+
+            onPhotos({
+              readyPhotos,
+              pendingCount,
+              failedPhotos,
+            });
+          },
+          (error: unknown) => {
+            if (isActive) {
+              onError(error);
+            }
+          },
+        );
+      }
+
+      const unsubscribeOwnerPhotos = repository.subscribeToOwnerPhotos(
         ownerId,
         (photos) => {
-          const currentVersion = ++snapshotVersion;
-          const nowMs = Date.now();
-          const failedPhotos = photos
-            .filter((photo) => photo.status === 'failed')
-            .map(({ id, slot, originalFileName, updatedAt }) => ({
-              id,
-              slot,
-              originalFileName,
-              updatedAt,
-            }));
-          const activePhotos = photos.filter((photo) =>
-            isActiveOwnerPhoto(photo, nowMs),
-          );
-          const pendingCount = activePhotos.filter(
-            (photo) =>
-              photo.status === 'reserved'
-              || photo.status === 'processing',
-          ).length;
-          const readyOwnerPhotos = activePhotos.filter(
-            (photo) => photo.status === 'ready',
-          );
-
-          void Promise.all(
-            readyOwnerPhotos.map((photo) =>
-              toGalleryPhoto(photo, uploadGateway),
-            ),
-          ).then(
-            (resolvedPhotos) => {
-              if (
-                !isActive
-                || currentVersion !== snapshotVersion
-              ) {
-                return;
-              }
-
-              const readyPhotos = resolvedPhotos
-                .filter((photo): photo is GalleryPhoto =>
-                  photo !== null,
-                )
-                .sort((left, right) => {
-                  const leftTime =
-                    left.updatedAt?.getTime() ?? 0;
-                  const rightTime =
-                    right.updatedAt?.getTime() ?? 0;
-                  return rightTime - leftTime;
-                });
-
-              onPhotos({
-                readyPhotos,
-                pendingCount,
-                failedPhotos,
-              });
-            },
-            (error: unknown) => {
-              if (isActive) {
-                onError(error);
-              }
-            },
-          );
+          ownerPhotos = photos;
+          publish();
         },
         onError,
       );
+      // The public records say where each ready photo's files are.
+      const unsubscribePublicPhotos =
+        repository.subscribeToOwnerPublicPhotos(
+          ownerId,
+          (photos) => {
+            publicGenerations = new Map(
+              photos.map((photo) => [
+                photo.slot,
+                photo.sourceGeneration,
+              ]),
+            );
+            publish();
+          },
+          onError,
+        );
 
       return () => {
         isActive = false;
-        unsubscribe();
+        unsubscribeOwnerPhotos();
+        unsubscribePublicPhotos();
       };
     },
   };
