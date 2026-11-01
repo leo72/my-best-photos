@@ -7,6 +7,7 @@ import { useState } from 'react';
 import {
   getCollectionSubtitle,
 } from '../../features/collection/collection';
+import { getPhotoSrcSet } from '../../features/photos/photo-image';
 
 import type { CollectionProfile } from '../../features/collection/collection';
 import type { GalleryPhoto } from '../../features/photos/photo';
@@ -42,6 +43,8 @@ export function CinematicPublicLayout({
     <section className="relative min-h-[70vh] overflow-hidden bg-slate-950 text-white sm:min-h-[78vh]">
       <img
         src={photo.optimizedUrl}
+        srcSet={getPhotoSrcSet(photo)}
+        sizes="100vw"
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />
@@ -120,9 +123,11 @@ export function CinematicPublicLayout({
               }}
             >
               <img
-                src={entry.optimizedUrl}
+                src={entry.thumbnailUrl}
                 alt=""
                 className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             </button>
           ))}
@@ -166,7 +171,9 @@ export function GalleryPublicLayout({
             ].join(' ')}
           >
             <img
-              src={photo.optimizedUrl}
+              src={photo.thumbnailUrl}
+              srcSet={getPhotoSrcSet(photo)}
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               alt=""
               className="h-full w-full object-cover"
               loading="lazy"
@@ -205,7 +212,9 @@ export function CleanPublicLayout({
             className="block overflow-hidden rounded-2xl bg-slate-100"
           >
             <img
-              src={photo.optimizedUrl}
+              src={photo.thumbnailUrl}
+              srcSet={getPhotoSrcSet(photo)}
+              sizes="(min-width: 768px) 25vw, 50vw"
               alt=""
               className="aspect-square h-auto w-full object-cover"
               loading="lazy"

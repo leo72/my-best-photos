@@ -31,7 +31,8 @@ service cloud.firestore {
         && isCollectionType(request.resource.data.collectionType)
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
-        && request.resource.data.title.size() <= 100
+        // Keep in sync with MAX_COLLECTION_TITLE_LENGTH.
+        && request.resource.data.title.size() <= 128
         && request.resource.data.updatedAt is timestamp
         && (
           !('createdAt' in request.resource.data)

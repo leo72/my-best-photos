@@ -12,13 +12,14 @@ import {
   InvalidImageDataError,
 } from './image-processor.js';
 import {
+  getPhotoDerivativePath,
   getPrivatePhotoPath,
   getPublicPhotoId,
-  getPhotoStorageBasePath,
   MAX_PHOTO_SIZE_BYTES,
   SUPPORTED_IMAGE_TYPES,
 } from './photo-contract.js';
 import {
+  canStartProcessingAttempt,
   decidePhotoProcessing,
   decideProcessingRetry,
   type ProcessingDecision,
@@ -124,9 +125,15 @@ function getProcessingErrorCode(error: unknown): string {
 
 async function beginProcessing(
   object: OriginalPhotoObject,
-): Promise<ProcessingDecision> {
+): Promise<ProcessingDecision | 'give-up'> {
   const photoRef = adminDb.doc(
     getPrivatePhotoPath(object.ownerId, object.slot),
+  );
+  const publicRef = adminDb.doc(
+    `publicPhotos/${getPublicPhotoId(
+      object.ownerId,
+      object.slot,
+    )}`,
   );
 
   return adminDb.runTransaction(async (transaction) => {
@@ -142,18 +149,28 @@ async function beginProcessing(
       return snapshot.exists ? decision : 'reject';
     }
 
-    const update: Record<string, unknown> = {
-      status: 'processing',
-      sourceGeneration: object.generation,
-      updatedAt: Timestamp.now(),
-      errorCode: null,
-    };
+    const attempt = isRecord(data) && data.status === 'reserved'
+      ? 1
+      : readProcessingAttempts(data) + 1;
 
-    if (isRecord(data) && data.status === 'reserved') {
-      update.processingAttempts = 0;
+    if (!canStartProcessingAttempt(attempt)) {
+      transaction.update(photoRef, {
+        status: 'failed',
+        errorCode: 'processing-failed',
+        updatedAt: Timestamp.now(),
+        reservationExpiresAt: null,
+      });
+      transaction.delete(publicRef);
+      return 'give-up';
     }
 
-    transaction.update(photoRef, update);
+    transaction.update(photoRef, {
+      status: 'processing',
+      sourceGeneration: object.generation,
+      processingAttempts: attempt,
+      updatedAt: Timestamp.now(),
+      errorCode: null,
+    });
 
     return decision;
   });
@@ -253,14 +270,14 @@ async function recordTransientProcessingFailure(
       return 'give-up';
     }
 
-    const failedAttemptCount = readProcessingAttempts(data) + 1;
-    const retryDecision = decideProcessingRetry(failedAttemptCount);
+    const retryDecision = decideProcessingRetry(
+      readProcessingAttempts(data),
+    );
 
     if (retryDecision === 'give-up') {
       transaction.update(privateRef, {
         status: 'failed',
         errorCode,
-        processingAttempts: failedAttemptCount,
         updatedAt: Timestamp.now(),
         reservationExpiresAt: null,
       });
@@ -269,7 +286,6 @@ async function recordTransientProcessingFailure(
     }
 
     transaction.update(privateRef, {
-      processingAttempts: failedAttemptCount,
       errorCode,
       updatedAt: Timestamp.now(),
     });
@@ -288,10 +304,6 @@ async function processOriginal(
     });
   const { optimized, thumbnail } =
     await createImageDerivatives(originalBuffer);
-  const basePath = getPhotoStorageBasePath(
-    object.ownerId,
-    object.slot,
-  );
   const outputMetadata = {
     contentType: 'image/webp',
     cacheControl: 'public,max-age=31536000,immutable',
@@ -302,10 +314,20 @@ async function processOriginal(
 
   await Promise.all([
     adminBucket
-      .file(`${basePath}/optimized.webp`)
+      .file(getPhotoDerivativePath(
+        object.ownerId,
+        object.slot,
+        object.generation,
+        'optimized.webp',
+      ))
       .save(optimized.data, outputMetadata),
     adminBucket
-      .file(`${basePath}/thumbnail.webp`)
+      .file(getPhotoDerivativePath(
+        object.ownerId,
+        object.slot,
+        object.generation,
+        'thumbnail.webp',
+      ))
       .save(thumbnail.data, outputMetadata),
   ]);
 
@@ -344,6 +366,7 @@ async function processOriginal(
     transaction.set(publicRef, {
       ownerId: object.ownerId,
       slot: object.slot,
+      sourceGeneration: object.generation,
       status: 'ready',
       width: optimized.width,
       height: optimized.height,
@@ -375,6 +398,15 @@ export const processPhotoUpload = onObjectFinalized(
       const decision = await beginProcessing(object);
 
       if (decision === 'already-ready') {
+        return;
+      }
+
+      if (decision === 'give-up') {
+        logger.warn('Photo processing gave up after retries', {
+          ownerId: object.ownerId,
+          slot: object.slot,
+          errorCode: 'processing-failed',
+        });
         return;
       }
 

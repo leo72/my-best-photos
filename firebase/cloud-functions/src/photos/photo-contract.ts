@@ -1,10 +1,14 @@
 export {
   MAX_PHOTO_SIZE_BYTES,
   MAX_PHOTO_SLOTS,
+  OPTIMIZED_MAX_SIZE,
   SUPPORTED_IMAGE_TYPES,
+  THUMBNAIL_MAX_SIZE,
+  getPhotoDerivativePath,
   getPhotoStorageBasePath,
   getPrivatePhotoPath,
   getPublicPhotoId,
+  type PhotoDerivative,
   type PhotoReservation,
   type ReservePhotoInput,
   type ReservePhotoResult,
@@ -12,10 +16,6 @@ export {
 
 /** How long a reserved upload slot stays valid before cleanup. */
 export const RESERVATION_TTL_MS = 15 * 60 * 1000;
-/** Longest edge of the public full-size WebP, in pixels. */
-export const OPTIMIZED_MAX_SIZE = 2048;
-/** Longest edge of the public thumbnail WebP, in pixels. */
-export const THUMBNAIL_MAX_SIZE = 960;
 
 export type PrivatePhotoStatus =
   | 'reserved'

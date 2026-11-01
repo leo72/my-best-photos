@@ -8,12 +8,21 @@ import { SiteLayout } from '../components/layout/site-layout';
 import { RequireAuth } from '../features/auth/require-auth';
 import { useAuth } from '../features/auth/auth-provider';
 import { useCollection } from '../features/collection/use-collection';
+import { MAX_PHOTO_SLOTS } from '../features/photos/photo';
 import { useMyPhotos } from '../features/photos/use-my-photos';
+import { usePhotoUpload } from '../features/photos/use-photo-upload';
 
 function MyPhotosContent() {
   const { user } = useAuth();
   const myPhotos = useMyPhotos();
   const collection = useCollection(user?.id);
+  const usedCount = myPhotos.status === 'ready'
+    ? myPhotos.snapshot.readyPhotos.length
+      + myPhotos.snapshot.pendingCount
+    : 0;
+  const upload = usePhotoUpload({
+    remainingSlots: MAX_PHOTO_SLOTS - usedCount,
+  });
 
   if (
     myPhotos.status === 'loading'
@@ -53,16 +62,31 @@ function MyPhotosContent() {
         profile={collection.profile}
       />
 
+      <input
+        ref={upload.fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        className="sr-only"
+        disabled={upload.isUploading}
+        onChange={(event) => {
+          void upload.uploadFiles(event.target.files);
+        }}
+      />
+
       {readyPhotos.length > 0 ? (
         <MyPhotosFilledState
           photos={readyPhotos}
           pendingCount={pendingCount}
+          upload={upload}
         />
       ) : pendingCount > 0 ? (
-        <MyPhotosProcessingState />
+        <MyPhotosProcessingState
+          errorMessage={upload.errorMessage}
+        />
       ) : (
         <>
-          <MyPhotosEmptyState />
+          <MyPhotosEmptyState upload={upload} />
           <div className="mt-4 sm:mt-6">
             <MyPhotosEmptySteps />
           </div>

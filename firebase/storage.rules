@@ -48,17 +48,34 @@ service firebase.storage {
         && publicPhoto(ownerId, slot).data.status == 'ready';
     }
 
+    function isDerivative(name) {
+      return name == 'optimized.webp' || name == 'thumbnail.webp';
+    }
+
+    function publicSourceGeneration(ownerId, slot) {
+      return publicPhoto(ownerId, slot).data.get('sourceGeneration', null);
+    }
+
     match /photos/{ownerId}/{slot}/original {
       allow read: if isOwner(ownerId);
       allow create: if canCreateOriginal(ownerId, slot);
       allow update, delete: if false;
     }
 
+    // Only the generation the public record points at is served.
+    match /photos/{ownerId}/{slot}/{sourceGeneration}/{derivative} {
+      allow read: if isDerivative(derivative)
+        && isReadyPublicPhoto(ownerId, slot)
+        && publicSourceGeneration(ownerId, slot) == sourceGeneration;
+      allow write: if false;
+    }
+
+    // Unversioned layout of photos processed before derivatives were
+    // versioned. Remove once no public record lacks sourceGeneration.
     match /photos/{ownerId}/{slot}/{derivative} {
-      allow read: if (
-        derivative == 'optimized.webp'
-        || derivative == 'thumbnail.webp'
-      ) && isReadyPublicPhoto(ownerId, slot);
+      allow read: if isDerivative(derivative)
+        && isReadyPublicPhoto(ownerId, slot)
+        && publicSourceGeneration(ownerId, slot) == null;
       allow write: if false;
     }
 

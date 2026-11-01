@@ -7,6 +7,7 @@ import { useId, useState } from 'react';
 
 import { useAppServices } from '../../app/providers';
 import { getPhotoErrorMessage } from '../../features/photos/photo-errors';
+import { getPhotoSrcSet } from '../../features/photos/photo-image';
 import {
   formatUploadedAt,
   photoDisplayTitle,
@@ -75,7 +76,9 @@ export function MyPhotoCard({ photo }: MyPhotoCardProps) {
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="relative bg-slate-100">
         <img
-          src={photo.optimizedUrl}
+          src={photo.thumbnailUrl}
+          srcSet={getPhotoSrcSet(photo)}
+          sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
           alt={title}
           loading="lazy"
           decoding="async"

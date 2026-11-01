@@ -1,6 +1,12 @@
 import { EmptyPhotosIllustration } from './empty-photos-illustration';
 
-export function MyPhotosProcessingState() {
+interface MyPhotosProcessingStateProps {
+  errorMessage: string;
+}
+
+export function MyPhotosProcessingState({
+  errorMessage,
+}: MyPhotosProcessingStateProps) {
   return (
     <section className="rounded-3xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
       <EmptyPhotosIllustration />
@@ -19,6 +25,15 @@ export function MyPhotosProcessingState() {
       >
         Processing…
       </p>
+
+      {errorMessage ? (
+        <p
+          className="mt-4 text-sm text-red-600"
+          role="alert"
+        >
+          {errorMessage}
+        </p>
+      ) : null}
     </section>
   );
 }

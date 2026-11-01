@@ -9,27 +9,25 @@ import { MAX_PHOTO_SLOTS } from '../../features/photos/photo';
 import {
   getPublicPagePath,
 } from '../../features/photos/public-page-path';
-import { usePhotoUpload } from '../../features/photos/use-photo-upload';
+
+import type { PhotoUploadControls } from '../../features/photos/use-photo-upload';
 
 interface MyPhotosToolbarProps {
   usedCount: number;
   canUpload: boolean;
+  upload: PhotoUploadControls;
 }
 
 export function MyPhotosToolbar({
   usedCount,
   canUpload,
-}: MyPhotosToolbarProps) {
-  const { user } = useAuth();
-  const {
-    fileInputRef,
+  upload: {
     errorMessage,
     isUploading,
     openFilePicker,
-    uploadFiles,
-  } = usePhotoUpload({
-    remainingSlots: MAX_PHOTO_SLOTS - usedCount,
-  });
+  },
+}: MyPhotosToolbarProps) {
+  const { user } = useAuth();
   const progressPercent = Math.min(
     100,
     Math.round((usedCount / MAX_PHOTO_SLOTS) * 100),
@@ -61,18 +59,6 @@ export function MyPhotosToolbar({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            className="sr-only"
-            disabled={!canUpload || isUploading}
-            onChange={(event) => {
-              void uploadFiles(event.target.files);
-            }}
-          />
-
           <button
             type="button"
             disabled={!canUpload || isUploading}

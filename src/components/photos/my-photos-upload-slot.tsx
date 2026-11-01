@@ -1,37 +1,22 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 import { MAX_PHOTO_SLOTS } from '../../features/photos/photo';
-import { usePhotoUpload } from '../../features/photos/use-photo-upload';
+
+import type { PhotoUploadControls } from '../../features/photos/use-photo-upload';
 
 interface MyPhotosUploadSlotProps {
-  remainingSlots: number;
+  upload: PhotoUploadControls;
 }
 
+/** Upload errors show in the toolbar, which shares this upload. */
 export function MyPhotosUploadSlot({
-  remainingSlots,
-}: MyPhotosUploadSlotProps) {
-  const {
-    fileInputRef,
-    errorMessage,
+  upload: {
     isUploading,
     openFilePicker,
-    uploadFiles,
-  } = usePhotoUpload({ remainingSlots });
-
+  },
+}: MyPhotosUploadSlotProps) {
   return (
     <div className="flex min-h-full flex-col">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        multiple
-        className="sr-only"
-        disabled={isUploading}
-        onChange={(event) => {
-          void uploadFiles(event.target.files);
-        }}
-      />
-
       <button
         type="button"
         disabled={isUploading}
@@ -48,12 +33,6 @@ export function MyPhotosUploadSlot({
           Add another photo (up to {MAX_PHOTO_SLOTS} total)
         </span>
       </button>
-
-      {errorMessage ? (
-        <p className="mt-2 text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      ) : null}
     </div>
   );
 }

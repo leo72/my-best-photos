@@ -1,4 +1,8 @@
-import { useRef, useState } from 'react';
+import {
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 
 import { useAppServices } from '../../app/providers';
 import {
@@ -12,6 +16,16 @@ interface UsePhotoUploadOptions {
   remainingSlots?: number;
 }
 
+export interface PhotoUploadControls {
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  errorMessage: string;
+  isUploading: boolean;
+  openFilePicker: () => void;
+  uploadFiles: (
+    files: FileList | readonly File[] | null,
+  ) => Promise<void>;
+}
+
 function toFileList(files: FileList | readonly File[] | null): File[] {
   if (!files) {
     return [];
@@ -20,9 +34,13 @@ function toFileList(files: FileList | readonly File[] | null): File[] {
   return Array.from(files).filter((file) => file.size > 0);
 }
 
+/**
+ * Call once per page, above the views that swap as photos arrive: a
+ * batch keeps running after the first upload changes which view shows.
+ */
 export function usePhotoUpload({
   remainingSlots = MAX_PHOTO_SLOTS,
-}: UsePhotoUploadOptions = {}) {
+}: UsePhotoUploadOptions = {}): PhotoUploadControls {
   const { photoService } = useAppServices();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isUploadingRef = useRef(false);

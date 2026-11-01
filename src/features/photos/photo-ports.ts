@@ -1,5 +1,6 @@
 import type {
   OwnerPhoto,
+  PhotoDerivative,
   PhotoReservation,
   PublicPhoto,
   ReservePhotoInput,
@@ -42,6 +43,7 @@ export interface PhotoUploadGateway {
   getDerivativeUrl(
     ownerId: string,
     slot: number,
-    derivative: 'optimized.webp' | 'thumbnail.webp',
+    sourceGeneration: string | null,
+    derivative: PhotoDerivative,
   ): Promise<string>;
 }

@@ -25,6 +25,8 @@ import {
   it,
 } from 'vitest';
 
+import { MAX_COLLECTION_TITLE_LENGTH } from '../../src/features/collection/collection';
+
 const projectId = 'my-best-photos-v1';
 const validFile = new Uint8Array([1, 2, 3]);
 
@@ -231,6 +233,33 @@ describe('Firestore rules', () => {
     );
   });
 
+  it('accepts titles up to the client limit and no longer', async () => {
+    const now = Timestamp.now();
+    const ownerDoc = doc(
+      authContext('owner').firestore(),
+      'users/owner',
+    );
+    const payload = {
+      ownerId: 'owner',
+      collectionType: 'collection',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await assertSucceeds(
+      setDoc(ownerDoc, {
+        ...payload,
+        title: 'a'.repeat(MAX_COLLECTION_TITLE_LENGTH),
+      }),
+    );
+    await assertFails(
+      setDoc(ownerDoc, {
+        ...payload,
+        title: 'a'.repeat(MAX_COLLECTION_TITLE_LENGTH + 1),
+      }),
+    );
+  });
+
   it('denies unverified owners from private reads and writes', async () => {
     const now = Timestamp.now();
     await seedReservation('owner', 1, 'reservation');
@@ -316,7 +345,7 @@ describe('Storage rules', () => {
     );
   });
 
-  it('exposes ready derivatives but keeps originals private', async () => {
+  it('exposes the current derivative generation but keeps originals private', async () => {
     await testEnvironment.withSecurityRulesDisabled(
       async (context) => {
         await setDoc(
@@ -325,18 +354,20 @@ describe('Storage rules', () => {
             status: 'ready',
             ownerId: 'owner',
             slot: 1,
+            sourceGeneration: '42',
           },
         );
-        await uploadBytes(
-          ref(
-            context.storage(),
-            'photos/owner/1/thumbnail.webp',
-          ),
+        await Promise.all([
+          'photos/owner/1/42/thumbnail.webp',
+          'photos/owner/1/41/thumbnail.webp',
+          'photos/owner/1/thumbnail.webp',
+        ].map((path) => uploadBytes(
+          ref(context.storage(), path),
           validFile,
           {
             contentType: 'image/webp',
           },
-        );
+        )));
         await uploadBytes(
           ref(
             context.storage(),
@@ -358,6 +389,22 @@ describe('Storage rules', () => {
       getBytes(
         ref(
           anonymousStorage,
+          'photos/owner/1/42/thumbnail.webp',
+        ),
+      ),
+    );
+    await assertFails(
+      getBytes(
+        ref(
+          anonymousStorage,
+          'photos/owner/1/41/thumbnail.webp',
+        ),
+      ),
+    );
+    await assertFails(
+      getBytes(
+        ref(
+          anonymousStorage,
           'photos/owner/1/thumbnail.webp',
         ),
       ),
@@ -367,6 +414,42 @@ describe('Storage rules', () => {
         ref(
           anonymousStorage,
           'photos/owner/1/original',
+        ),
+      ),
+    );
+  });
+
+  it('serves unversioned derivatives for records without a generation', async () => {
+    await testEnvironment.withSecurityRulesDisabled(
+      async (context) => {
+        await setDoc(
+          doc(context.firestore(), 'publicPhotos/owner_1'),
+          {
+            status: 'ready',
+            ownerId: 'owner',
+            slot: 1,
+          },
+        );
+        await uploadBytes(
+          ref(
+            context.storage(),
+            'photos/owner/1/thumbnail.webp',
+          ),
+          validFile,
+          {
+            contentType: 'image/webp',
+          },
+        );
+      },
+    );
+
+    await assertSucceeds(
+      getBytes(
+        ref(
+          testEnvironment
+            .unauthenticatedContext()
+            .storage(),
+          'photos/owner/1/thumbnail.webp',
         ),
       ),
     );

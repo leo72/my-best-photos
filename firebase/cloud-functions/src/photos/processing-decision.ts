@@ -1,5 +1,7 @@
-/** Processing retries after a failed derivative build before marking the photo failed. */
+/** Processing attempts, counted as each one starts, before marking the photo failed. */
 export const MAX_PHOTO_PROCESSING_ATTEMPTS = 5;
+/** Processing with no progress for this long is treated as crashed. */
+export const PROCESSING_STALL_TIMEOUT_MS = 60 * 60 * 1000;
 
 export type ProcessingDecision =
   | 'process'
@@ -8,12 +10,30 @@ export type ProcessingDecision =
 
 export type ProcessingRetryDecision = 'retry' | 'give-up';
 
+/**
+ * Attempts are counted when they start, so a run that times out or
+ * crashes before reaching the failure handler still uses one up.
+ */
+export function canStartProcessingAttempt(attempt: number): boolean {
+  return attempt <= MAX_PHOTO_PROCESSING_ATTEMPTS;
+}
+
 export function decideProcessingRetry(
-  failedAttemptCount: number,
+  failedAttempt: number,
 ): ProcessingRetryDecision {
-  return failedAttemptCount >= MAX_PHOTO_PROCESSING_ATTEMPTS
+  return failedAttempt >= MAX_PHOTO_PROCESSING_ATTEMPTS
     ? 'give-up'
     : 'retry';
+}
+
+export function isStalledProcessing(
+  status: unknown,
+  updatedAtMs: number | null,
+  nowMs: number,
+): boolean {
+  return status === 'processing'
+    && updatedAtMs !== null
+    && updatedAtMs <= nowMs - PROCESSING_STALL_TIMEOUT_MS;
 }
 
 export function decidePhotoProcessing(

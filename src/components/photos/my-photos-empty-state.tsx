@@ -1,18 +1,21 @@
 import { ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 
-import { usePhotoUpload } from '../../features/photos/use-photo-upload';
 import { TextLink } from '../ui/text-link';
 import { EmptyPhotosIllustration } from './empty-photos-illustration';
 
-export function MyPhotosEmptyState() {
-  const {
-    fileInputRef,
+import type { PhotoUploadControls } from '../../features/photos/use-photo-upload';
+
+interface MyPhotosEmptyStateProps {
+  upload: PhotoUploadControls;
+}
+
+export function MyPhotosEmptyState({
+  upload: {
     errorMessage,
     isUploading,
     openFilePicker,
-    uploadFiles,
-  } = usePhotoUpload();
-
+  },
+}: MyPhotosEmptyStateProps) {
   return (
     <section className="rounded-3xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
       <EmptyPhotosIllustration />
@@ -24,18 +27,6 @@ export function MyPhotosEmptyState() {
         Upload your first photo to get started. You can keep up
         to 10 photos.
       </p>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        multiple
-        className="sr-only"
-        disabled={isUploading}
-        onChange={(event) => {
-          void uploadFiles(event.target.files);
-        }}
-      />
 
       <button
         type="button"

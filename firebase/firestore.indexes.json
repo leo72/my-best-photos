@@ -15,6 +15,20 @@
       ]
     },
     {
+      "collectionGroup": "photos",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "publicPhotos",
       "queryScope": "COLLECTION",
       "fields": [

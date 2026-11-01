@@ -70,11 +70,13 @@ async function toGalleryPhoto(
     uploadGateway.getDerivativeUrl(
       photo.ownerId,
       photo.slot,
+      photo.sourceGeneration,
       'thumbnail.webp',
     ),
     uploadGateway.getDerivativeUrl(
       photo.ownerId,
       photo.slot,
+      photo.sourceGeneration,
       'optimized.webp',
     ),
   ]);
@@ -83,6 +85,7 @@ async function toGalleryPhoto(
     id: `${photo.ownerId}_${photo.slot}`,
     ownerId: photo.ownerId,
     slot: photo.slot,
+    sourceGeneration: photo.sourceGeneration,
     status: 'ready',
     width: photo.width,
     height: photo.height,
@@ -116,11 +119,13 @@ function subscribeResolvedPublicPhotos(
           thumbnailUrl: await uploadGateway.getDerivativeUrl(
             photo.ownerId,
             photo.slot,
+            photo.sourceGeneration,
             'thumbnail.webp',
           ),
           optimizedUrl: await uploadGateway.getDerivativeUrl(
             photo.ownerId,
             photo.slot,
+            photo.sourceGeneration,
             'optimized.webp',
           ),
           originalFileName: null,

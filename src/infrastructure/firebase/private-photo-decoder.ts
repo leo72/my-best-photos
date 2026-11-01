@@ -81,6 +81,10 @@ export function decodeOwnerPhoto(
     id: photoId,
     ownerId,
     slot,
+    sourceGeneration:
+      'sourceGeneration' in value
+        ? readString(value.sourceGeneration)
+        : null,
     status,
     originalFileName:
       'originalFileName' in value

@@ -61,6 +61,10 @@ export function decodePublicPhoto(
     id: photoId,
     ownerId,
     slot,
+    sourceGeneration:
+      'sourceGeneration' in value
+        ? readString(value.sourceGeneration)
+        : null,
     status: 'ready',
     width,
     height,

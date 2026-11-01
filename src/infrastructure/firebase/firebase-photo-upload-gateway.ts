@@ -17,6 +17,7 @@ import {
 import { getPublicStorageObjectUrl } from './storage-url';
 
 import {
+  getPhotoDerivativePath,
   getPhotoStorageBasePath,
   MAX_PHOTO_SLOTS,
   type PhotoReservation,
@@ -111,11 +112,17 @@ export function createFirebasePhotoUploadGateway(): PhotoUploadGateway {
     async getDerivativeUrl(
       ownerId,
       slot,
+      sourceGeneration,
       derivative,
     ): Promise<string> {
       return getPublicStorageObjectUrl(
         storageBucket,
-        `${getPhotoStorageBasePath(ownerId, slot)}/${derivative}`,
+        getPhotoDerivativePath(
+          ownerId,
+          slot,
+          sourceGeneration,
+          derivative,
+        ),
         isEmulated,
       );
     },

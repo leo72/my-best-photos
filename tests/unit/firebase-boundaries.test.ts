@@ -9,6 +9,7 @@ import { isActiveOwnerPhoto } from '../../src/features/photos/owner-photo';
 import { decodeOwnerPhoto } from '../../src/infrastructure/firebase/private-photo-decoder';
 import { decodePublicPhoto } from '../../src/infrastructure/firebase/public-photo-decoder';
 import { getPublicStorageObjectUrl } from '../../src/infrastructure/firebase/storage-url';
+import { getPhotoDerivativePath } from '../../shared/photo-contract';
 
 describe('decodePublicPhoto', () => {
   it('decodes a valid ready photo', () => {
@@ -17,6 +18,7 @@ describe('decodePublicPhoto', () => {
     expect(decodePublicPhoto('owner_1', {
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: '42',
       status: 'ready',
       width: 1200,
       height: 800,
@@ -26,6 +28,7 @@ describe('decodePublicPhoto', () => {
       id: 'owner_1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: '42',
       status: 'ready',
       width: 1200,
       height: 800,
@@ -69,6 +72,7 @@ describe('decodeOwnerPhoto', () => {
       id: '1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: null,
       status: 'reserved',
       originalFileName: 'mountains.jpg',
       width: null,
@@ -82,6 +86,7 @@ describe('decodeOwnerPhoto', () => {
     expect(decodeOwnerPhoto('2', {
       ownerId: 'owner',
       slot: 2,
+      sourceGeneration: '42',
       status: 'ready',
       width: 800,
       height: 600,
@@ -90,6 +95,7 @@ describe('decodeOwnerPhoto', () => {
       id: '2',
       ownerId: 'owner',
       slot: 2,
+      sourceGeneration: '42',
       status: 'ready',
       originalFileName: null,
       width: 800,
@@ -108,6 +114,7 @@ describe('isActiveOwnerPhoto', () => {
       id: '1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: null,
       status: 'failed',
       originalFileName: null,
       width: null,
@@ -122,6 +129,7 @@ describe('isActiveOwnerPhoto', () => {
       id: '1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: null,
       status: 'reserved',
       originalFileName: null,
       width: null,
@@ -136,6 +144,7 @@ describe('isActiveOwnerPhoto', () => {
       id: '1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: null,
       status: 'processing',
       originalFileName: null,
       width: null,
@@ -170,5 +179,19 @@ describe('getPublicStorageObjectUrl', () => {
       'http://127.0.0.1:9199/v0/b/demo.appspot.com/o/'
       + 'photos%2Fuser%2F1%2Foptimized.webp?alt=media',
     );
+  });
+});
+
+describe('getPhotoDerivativePath', () => {
+  it('gives each source generation its own path', () => {
+    expect(getPhotoDerivativePath('user', 3, '42', 'thumbnail.webp'))
+      .toBe('photos/user/3/42/thumbnail.webp');
+    expect(getPhotoDerivativePath('user', 3, '43', 'thumbnail.webp'))
+      .not.toBe(getPhotoDerivativePath('user', 3, '42', 'thumbnail.webp'));
+  });
+
+  it('keeps the unversioned layout for older photos', () => {
+    expect(getPhotoDerivativePath('user', 3, null, 'optimized.webp'))
+      .toBe('photos/user/3/optimized.webp');
   });
 });

@@ -1,20 +1,18 @@
 import { adminBucket } from '../firebase-admin.js';
 import { getPhotoStorageBasePath } from './photo-contract.js';
 
+/** Deletes the original and every derivative generation in a slot. */
 export async function deletePhotoFiles(
   ownerId: string,
   slot: number,
 ): Promise<void> {
-  const basePath = getPhotoStorageBasePath(ownerId, slot);
-  const paths = [
-    `${basePath}/original`,
-    `${basePath}/optimized.webp`,
-    `${basePath}/thumbnail.webp`,
-  ];
+  const [files] = await adminBucket.getFiles({
+    prefix: `${getPhotoStorageBasePath(ownerId, slot)}/`,
+  });
 
   await Promise.all(
-    paths.map(async (path) => {
-      await adminBucket.file(path).delete({
+    files.map(async (file) => {
+      await file.delete({
         ignoreNotFound: true,
       });
     }),

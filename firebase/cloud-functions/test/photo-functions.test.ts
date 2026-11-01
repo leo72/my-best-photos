@@ -11,9 +11,12 @@ import { getPhotoStorageBucket } from '../src/firebase-admin.js';
 import { requireVerifiedUserId } from '../src/require-verified-user.js';
 import { createImageDerivatives } from '../src/photos/image-processor.js';
 import {
+  canStartProcessingAttempt,
   decidePhotoProcessing,
   decideProcessingRetry,
+  isStalledProcessing,
   MAX_PHOTO_PROCESSING_ATTEMPTS,
+  PROCESSING_STALL_TIMEOUT_MS,
 } from '../src/photos/processing-decision.js';
 import { canDeleteOwnerPhotoStatus } from '../src/photos/delete-photo-decision.js';
 import { findAvailableSlot } from '../src/photos/slot-allocation.js';
@@ -118,6 +121,40 @@ describe('decideProcessingRetry', () => {
       .toBe('retry');
     expect(decideProcessingRetry(MAX_PHOTO_PROCESSING_ATTEMPTS))
       .toBe('give-up');
+  });
+});
+
+describe('canStartProcessingAttempt', () => {
+  it('stops runs that crashed without reaching the failure handler', () => {
+    expect(canStartProcessingAttempt(1)).toBe(true);
+    expect(canStartProcessingAttempt(MAX_PHOTO_PROCESSING_ATTEMPTS))
+      .toBe(true);
+    expect(canStartProcessingAttempt(MAX_PHOTO_PROCESSING_ATTEMPTS + 1))
+      .toBe(false);
+  });
+});
+
+describe('isStalledProcessing', () => {
+  const nowMs = 10 * PROCESSING_STALL_TIMEOUT_MS;
+
+  it('flags processing with no progress past the timeout', () => {
+    expect(isStalledProcessing(
+      'processing',
+      nowMs - PROCESSING_STALL_TIMEOUT_MS,
+      nowMs,
+    )).toBe(true);
+  });
+
+  it('leaves recent, finished and undated photos alone', () => {
+    expect(isStalledProcessing(
+      'processing',
+      nowMs - PROCESSING_STALL_TIMEOUT_MS + 1,
+      nowMs,
+    )).toBe(false);
+    expect(isStalledProcessing('ready', 0, nowMs)).toBe(false);
+    expect(isStalledProcessing('reserved', 0, nowMs)).toBe(false);
+    expect(isStalledProcessing('processing', null, nowMs))
+      .toBe(false);
   });
 });
 

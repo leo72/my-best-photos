@@ -12,6 +12,7 @@ import {
 
 import type {
   OwnerPhoto,
+  PhotoDerivative,
   PhotoReservation,
   PublicPhoto,
   ReservePhotoInput,
@@ -100,9 +101,10 @@ class FakePhotoUploadGateway implements PhotoUploadGateway {
   public async getDerivativeUrl(
     ownerId: string,
     slot: number,
-    derivative: 'optimized.webp' | 'thumbnail.webp',
+    sourceGeneration: string | null,
+    derivative: PhotoDerivative,
   ): Promise<string> {
-    return `https://example.test/${ownerId}/${slot}/${derivative}`;
+    return `https://example.test/${ownerId}/${slot}/${sourceGeneration}/${derivative}`;
   }
 }
 
@@ -210,6 +212,7 @@ describe('createPhotoService', () => {
       id: 'owner_1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: '42',
       status: 'ready',
       width: 1200,
       height: 800,
@@ -247,9 +250,9 @@ describe('createPhotoService', () => {
         {
           ...photo,
           thumbnailUrl:
-            'https://example.test/owner/1/thumbnail.webp',
+            'https://example.test/owner/1/42/thumbnail.webp',
           optimizedUrl:
-            'https://example.test/owner/1/optimized.webp',
+            'https://example.test/owner/1/42/optimized.webp',
           originalFileName: null,
         },
       ]);
@@ -265,6 +268,7 @@ describe('createPhotoService', () => {
       id: '1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: '42',
       status: 'ready',
       originalFileName: 'mountains.jpg',
       width: 1200,
@@ -278,6 +282,7 @@ describe('createPhotoService', () => {
       id: '2',
       ownerId: 'owner',
       slot: 2,
+      sourceGeneration: null,
       status: 'processing',
       originalFileName: null,
       width: null,
@@ -320,15 +325,16 @@ describe('createPhotoService', () => {
             id: 'owner_1',
             ownerId: 'owner',
             slot: 1,
+            sourceGeneration: '42',
             status: 'ready',
             width: 1200,
             height: 800,
             createdAt: null,
             updatedAt: new Date(2_000),
             thumbnailUrl:
-              'https://example.test/owner/1/thumbnail.webp',
+              'https://example.test/owner/1/42/thumbnail.webp',
             optimizedUrl:
-              'https://example.test/owner/1/optimized.webp',
+              'https://example.test/owner/1/42/optimized.webp',
             originalFileName: 'mountains.jpg',
           },
         ],
@@ -347,6 +353,7 @@ describe('createPhotoService', () => {
       id: 'owner_1',
       ownerId: 'owner',
       slot: 1,
+      sourceGeneration: '42',
       status: 'ready',
       width: 1200,
       height: 800,
@@ -386,9 +393,9 @@ describe('createPhotoService', () => {
         {
           ...photo,
           thumbnailUrl:
-            'https://example.test/owner/1/thumbnail.webp',
+            'https://example.test/owner/1/42/thumbnail.webp',
           optimizedUrl:
-            'https://example.test/owner/1/optimized.webp',
+            'https://example.test/owner/1/42/optimized.webp',
           originalFileName: null,
         },
       ]);

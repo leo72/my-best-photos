@@ -1,6 +1,7 @@
 import { MAX_PHOTO_SLOTS } from '../../features/photos/photo';
 
 import type { GalleryPhoto } from '../../features/photos/photo';
+import type { PhotoUploadControls } from '../../features/photos/use-photo-upload';
 
 import { MyPhotoCard } from './my-photo-card';
 import { MyPhotosInfoBanner } from './my-photos-info-banner';
@@ -10,11 +11,13 @@ import { MyPhotosUploadSlot } from './my-photos-upload-slot';
 interface MyPhotosFilledStateProps {
   photos: readonly GalleryPhoto[];
   pendingCount: number;
+  upload: PhotoUploadControls;
 }
 
 export function MyPhotosFilledState({
   photos,
   pendingCount,
+  upload,
 }: MyPhotosFilledStateProps) {
   const usedCount = photos.length + pendingCount;
   const canUpload = usedCount < MAX_PHOTO_SLOTS;
@@ -24,6 +27,7 @@ export function MyPhotosFilledState({
       <MyPhotosToolbar
         usedCount={usedCount}
         canUpload={canUpload}
+        upload={upload}
       />
 
       {pendingCount > 0 ? (
@@ -38,9 +42,7 @@ export function MyPhotosFilledState({
           <MyPhotoCard key={photo.id} photo={photo} />
         ))}
         {canUpload ? (
-          <MyPhotosUploadSlot
-            remainingSlots={MAX_PHOTO_SLOTS - usedCount}
-          />
+          <MyPhotosUploadSlot upload={upload} />
         ) : null}
       </div>
 

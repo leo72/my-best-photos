@@ -2,7 +2,10 @@ export {
   MAX_PHOTO_SIZE_BYTES,
   MAX_PHOTO_SLOTS,
   SUPPORTED_IMAGE_TYPES,
+  THUMBNAIL_MAX_SIZE,
+  getPhotoDerivativePath,
   getPhotoStorageBasePath,
+  type PhotoDerivative,
   type PhotoReservation,
   type ReservePhotoInput,
 } from '../../../shared/photo-contract';
@@ -17,6 +20,8 @@ export interface PublicPhoto {
   id: string;
   ownerId: string;
   slot: number;
+  /** Version of the derivatives; `null` for the unversioned layout. */
+  sourceGeneration: string | null;
   status: 'ready';
   width: number;
   height: number;
@@ -28,6 +33,7 @@ export interface OwnerPhoto {
   id: string;
   ownerId: string;
   slot: number;
+  sourceGeneration: string | null;
   status: PrivatePhotoStatus;
   originalFileName: string | null;
   width: number | null;
