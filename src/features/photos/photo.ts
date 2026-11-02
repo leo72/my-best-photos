@@ -5,6 +5,7 @@ export {
   THUMBNAIL_MAX_SIZE,
   getPhotoDerivativePath,
   getPhotoStorageBasePath,
+  getPublicPhotoId,
   type PhotoDerivative,
   type PhotoReservation,
   type ReservePhotoInput,

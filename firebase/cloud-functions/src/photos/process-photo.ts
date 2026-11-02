@@ -383,6 +383,9 @@ export const processPhotoUpload = onObjectFinalized(
     timeoutSeconds: 300,
     memory: '1GiB',
     cpu: 1,
+    // One decode per instance: the 80 default could run out of memory.
+    concurrency: 1,
+    maxInstances: 10,
     retry: true,
   },
   async (event) => {

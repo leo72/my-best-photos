@@ -67,13 +67,6 @@ function ownerReadyPhoto(
 }
 
 class FakePhotoRepository implements PhotoRepository {
-  public subscribeToPublicPhotos(
-    onPhotos: (photos: PublicPhoto[]) => void,
-  ): () => void {
-    onPhotos([]);
-    return () => undefined;
-  }
-
   public subscribeToOwnerPublicPhotos(
     _ownerId: string,
     onPhotos: (photos: PublicPhoto[]) => void,
@@ -243,62 +236,6 @@ describe('createPhotoService', () => {
     expect(gateway.deletedSlots).toEqual([]);
   });
 
-  it('publishes resolved gallery URLs and unsubscribes', async () => {
-    const unsubscribe = vi.fn();
-    const photo: PublicPhoto = {
-      id: 'owner_1',
-      ownerId: 'owner',
-      slot: 1,
-      sourceGeneration: '42',
-      status: 'ready',
-      width: 1200,
-      height: 800,
-      createdAt: null,
-      updatedAt: null,
-    };
-    const repository: PhotoRepository = {
-      subscribeToPublicPhotos(onPhotos): () => void {
-        onPhotos([photo]);
-        return unsubscribe;
-      },
-      subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
-        onPhotos([]);
-        return () => undefined;
-      },
-      subscribeToOwnerPhotos(_ownerId, onPhotos): () => void {
-        onPhotos([]);
-        return () => undefined;
-      },
-    };
-    const service = createPhotoService({
-      authSession: createAuthSession('owner'),
-      repository,
-      uploadGateway: new FakePhotoUploadGateway(),
-    });
-    const onPhotos = vi.fn();
-
-    const dispose = service.subscribeToGallery(
-      onPhotos,
-      vi.fn(),
-    );
-
-    await vi.waitFor(() => {
-      expect(onPhotos).toHaveBeenCalledWith([
-        {
-          ...photo,
-          thumbnailUrl:
-            'https://example.test/owner/1/42/thumbnail.webp',
-          optimizedUrl:
-            'https://example.test/owner/1/42/optimized.webp',
-          originalFileName: null,
-        },
-      ]);
-    });
-
-    dispose();
-    expect(unsubscribe).toHaveBeenCalledOnce();
-  });
-
   it('publishes owner ready photos and pending counts', async () => {
     const unsubscribe = vi.fn();
     const unsubscribePublic = vi.fn();
@@ -331,10 +268,6 @@ describe('createPhotoService', () => {
       reservationExpiresAt: null,
     };
     const repository: PhotoRepository = {
-      subscribeToPublicPhotos(onPhotos): () => void {
-        onPhotos([]);
-        return () => undefined;
-      },
       subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
         onPhotos([publicRecord(1, '42')]);
         return unsubscribePublic;
@@ -392,10 +325,6 @@ describe('createPhotoService', () => {
     const legacyPhoto = ownerReadyPhoto(1, '42');
     const unpublishedPhoto = ownerReadyPhoto(2, '43');
     const repository: PhotoRepository = {
-      subscribeToPublicPhotos(onPhotos): () => void {
-        onPhotos([]);
-        return () => undefined;
-      },
       subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
         onPhotos([publicRecord(1, null)]);
         return () => undefined;
@@ -447,10 +376,6 @@ describe('createPhotoService', () => {
       reservationExpiresAt: null,
     };
     const repository: PhotoRepository = {
-      subscribeToPublicPhotos(onPhotos): () => void {
-        onPhotos([]);
-        return () => undefined;
-      },
       subscribeToOwnerPublicPhotos(_ownerId, onPhotos): () => void {
         onPhotos([]);
         return () => undefined;
@@ -499,10 +424,6 @@ describe('createPhotoService', () => {
       updatedAt: null,
     };
     const repository: PhotoRepository = {
-      subscribeToPublicPhotos(onPhotos): () => void {
-        onPhotos([]);
-        return () => undefined;
-      },
       subscribeToOwnerPublicPhotos(ownerId, onPhotos): () => void {
         expect(ownerId).toBe('owner');
         onPhotos([photo]);

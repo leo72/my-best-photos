@@ -7,10 +7,14 @@ import {
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
+  collection,
   doc,
   getDoc,
+  getDocs,
+  query,
   setDoc,
   Timestamp,
+  where,
 } from 'firebase/firestore';
 import {
   getBytes,
@@ -186,6 +190,77 @@ describe('Firestore rules', () => {
           slot: 2,
         },
       ),
+    );
+  });
+
+  it('allows empty public slots but hides records that are not ready', async () => {
+    await testEnvironment.withSecurityRulesDisabled(
+      async (context) => {
+        await setDoc(
+          doc(context.firestore(), 'publicPhotos/owner_3'),
+          {
+            status: 'processing',
+            ownerId: 'owner',
+            slot: 3,
+          },
+        );
+      },
+    );
+
+    const anonymousDb = testEnvironment
+      .unauthenticatedContext()
+      .firestore();
+
+    await assertSucceeds(
+      getDoc(doc(anonymousDb, 'publicPhotos/owner_2')),
+    );
+    await assertFails(
+      getDoc(doc(anonymousDb, 'publicPhotos/owner_3')),
+    );
+  });
+
+  it('denies listing profiles and public photos', async () => {
+    await testEnvironment.withSecurityRulesDisabled(
+      async (context) => {
+        await Promise.all([
+          setDoc(
+            doc(context.firestore(), 'users/owner'),
+            {
+              ownerId: 'owner',
+              collectionType: 'collection',
+              title: 'My 10 Photos',
+            },
+          ),
+          setDoc(
+            doc(context.firestore(), 'publicPhotos/owner_1'),
+            {
+              status: 'ready',
+              ownerId: 'owner',
+              slot: 1,
+            },
+          ),
+        ]);
+      },
+    );
+
+    const anonymousDb = testEnvironment
+      .unauthenticatedContext()
+      .firestore();
+    const ownerDb = authContext('owner').firestore();
+
+    await assertFails(getDocs(collection(anonymousDb, 'users')));
+    await assertFails(getDocs(collection(ownerDb, 'users')));
+    await assertFails(
+      getDocs(query(
+        collection(anonymousDb, 'publicPhotos'),
+        where('status', '==', 'ready'),
+      )),
+    );
+    await assertFails(
+      getDocs(query(
+        collection(ownerDb, 'publicPhotos'),
+        where('ownerId', '==', 'owner'),
+      )),
     );
   });
 

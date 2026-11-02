@@ -1,11 +1,7 @@
 import {
   collection,
-  limit,
+  doc,
   onSnapshot,
-  orderBy,
-  query,
-  where,
-  type Query,
 } from 'firebase/firestore';
 
 import { firebaseDb } from './client';
@@ -13,6 +9,7 @@ import { decodeOwnerPhoto } from './private-photo-decoder';
 import { decodePublicPhoto } from './public-photo-decoder';
 
 import {
+  getPublicPhotoId,
   MAX_PHOTO_SLOTS,
   type OwnerPhoto,
   type PublicPhoto,
@@ -21,39 +18,12 @@ import type { PhotoRepository } from '../../features/photos/photo-ports';
 
 export function createFirebasePhotoRepository(): PhotoRepository {
   return {
-    subscribeToPublicPhotos(onPhotos, onError): () => void {
-      const photosQuery = query(
-        collection(firebaseDb, 'publicPhotos'),
-        where('status', '==', 'ready'),
-        orderBy('updatedAt', 'desc'),
-        limit(50),
-      );
-
-      return subscribeDecodedPublicPhotos(
-        photosQuery,
-        onPhotos,
-        onError,
-      );
-    },
-
     subscribeToOwnerPublicPhotos(
       ownerId,
       onPhotos,
       onError,
     ): () => void {
-      const photosQuery = query(
-        collection(firebaseDb, 'publicPhotos'),
-        where('ownerId', '==', ownerId),
-        where('status', '==', 'ready'),
-        orderBy('updatedAt', 'desc'),
-        limit(MAX_PHOTO_SLOTS),
-      );
-
-      return subscribeDecodedPublicPhotos(
-        photosQuery,
-        onPhotos,
-        onError,
-      );
+      return subscribePublicPhotoSlots(ownerId, onPhotos, onError);
     },
 
     subscribeToOwnerPhotos(
@@ -89,33 +59,71 @@ export function createFirebasePhotoRepository(): PhotoRepository {
   };
 }
 
-function subscribeDecodedPublicPhotos(
-  photosQuery: Query,
+/**
+ * Security rules forbid listing public photos, so each slot is watched
+ * by id. Publishes once every slot has reported, newest first.
+ */
+function subscribePublicPhotoSlots(
+  ownerId: string,
   onPhotos: (photos: PublicPhoto[]) => void,
   onError: (error: unknown) => void,
 ): () => void {
-  return onSnapshot(
-    photosQuery,
-    (snapshot) => {
-      const photos: PublicPhoto[] = [];
+  const photosBySlot = new Map<number, PublicPhoto | null>();
+  let hasFailed = false;
 
-      for (const document of snapshot.docs) {
-        const photo = decodePublicPhoto(
-          document.id,
-          document.data(),
-        );
+  const unsubscribes = Array.from(
+    { length: MAX_PHOTO_SLOTS },
+    (_, index) => {
+      const slot = index + 1;
+      const photoId = getPublicPhotoId(ownerId, slot);
 
-        if (photo) {
-          photos.push(photo);
-        } else {
-          console.warn('Skipped invalid public photo', {
-            photoId: document.id,
-          });
-        }
-      }
+      return onSnapshot(
+        doc(firebaseDb, 'publicPhotos', photoId),
+        (snapshot) => {
+          if (hasFailed) {
+            return;
+          }
 
-      onPhotos(photos);
+          const photo = snapshot.exists()
+            ? decodePublicPhoto(photoId, snapshot.data())
+            : null;
+
+          if (snapshot.exists() && !photo) {
+            console.warn('Skipped invalid public photo', {
+              photoId,
+            });
+          }
+
+          photosBySlot.set(slot, photo);
+
+          if (photosBySlot.size < MAX_PHOTO_SLOTS) {
+            return;
+          }
+
+          onPhotos(
+            [...photosBySlot.values()]
+              .filter((entry): entry is PublicPhoto => entry !== null)
+              .sort((left, right) =>
+                (right.updatedAt?.getTime() ?? 0)
+                - (left.updatedAt?.getTime() ?? 0),
+              ),
+          );
+        },
+        (error) => {
+          if (hasFailed) {
+            return;
+          }
+
+          hasFailed = true;
+          onError(error);
+        },
+      );
     },
-    onError,
   );
+
+  return () => {
+    for (const unsubscribe of unsubscribes) {
+      unsubscribe();
+    }
+  };
 }

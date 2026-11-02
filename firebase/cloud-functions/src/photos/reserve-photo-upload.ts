@@ -159,6 +159,7 @@ export const reservePhotoUpload = onCall(
     region: 'us-central1',
     timeoutSeconds: 30,
     memory: '256MiB',
+    maxInstances: 10,
   },
   async (request): Promise<ReservePhotoResult> => {
     const ownerId = requireVerifiedUserId(request.auth);

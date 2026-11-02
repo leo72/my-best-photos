@@ -11,10 +11,6 @@ export interface AuthSession {
 }
 
 export interface PhotoRepository {
-  subscribeToPublicPhotos(
-    onPhotos: (photos: PublicPhoto[]) => void,
-    onError: (error: unknown) => void,
-  ): () => void;
   subscribeToOwnerPublicPhotos(
     ownerId: string,
     onPhotos: (photos: PublicPhoto[]) => void,

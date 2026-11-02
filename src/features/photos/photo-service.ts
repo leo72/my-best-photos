@@ -19,10 +19,6 @@ import type {
 export interface PhotoService {
   uploadPhoto(file: File): Promise<UploadPhotoResult>;
   deletePhoto(slot: number): Promise<void>;
-  subscribeToGallery(
-    onPhotos: (photos: GalleryPhoto[]) => void,
-    onError: (error: unknown) => void,
-  ): () => void;
   subscribeToPublicPage(
     ownerId: string,
     onPhotos: (photos: GalleryPhoto[]) => void,
@@ -215,15 +211,6 @@ export function createPhotoService({
       }
 
       await uploadGateway.deletePhoto(slot);
-    },
-
-    subscribeToGallery(onPhotos, onError): () => void {
-      return subscribeResolvedPublicPhotos(
-        repository.subscribeToPublicPhotos.bind(repository),
-        uploadGateway,
-        onPhotos,
-        onError,
-      );
     },
 
     subscribeToPublicPage(ownerId, onPhotos, onError): () => void {

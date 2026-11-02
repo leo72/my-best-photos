@@ -167,6 +167,7 @@ export const cleanupExpiredPhotoReservations = onSchedule(
     region: 'us-central1',
     timeoutSeconds: 120,
     memory: '256MiB',
+    maxInstances: 1,
   },
   async () => {
     const now = Timestamp.now();

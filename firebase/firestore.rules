@@ -61,8 +61,11 @@ service cloud.firestore {
         );
     }
 
+    // Pages are shared by link, so profiles are read by id but never
+    // listed: a list would hand out every owner id.
     match /users/{ownerId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if false;
       allow create: if isOwner(ownerId)
         && isValidCollectionWrite()
         && request.resource.data.createdAt is timestamp;
@@ -78,8 +81,12 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Read by id (`{ownerId}_{slot}`) only, for the same reason. An empty
+    // slot is readable so a page can watch all of its slots.
     match /publicPhotos/{photoId} {
-      allow read: if resource.data.status == 'ready';
+      allow get: if resource == null
+        || resource.data.status == 'ready';
+      allow list: if false;
       allow create, update, delete: if false;
     }
 
